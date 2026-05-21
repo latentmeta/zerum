@@ -1,5 +1,6 @@
-use crate::core::{Category, Severity};
+use crate::core::{Category, Check, Severity};
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -16,8 +17,8 @@ pub struct Issue {
     pub id: String,
     pub title: String,
     pub message: String,
-    pub explanation: Option<String>,
-    pub remediation: Option<String>,
+    pub explanation: Option<Cow<'static, str>>,
+    pub remediation: Option<Cow<'static, str>>,
     pub file: PathBuf,
     pub line: usize,
     pub column: usize,
@@ -27,37 +28,90 @@ pub struct Issue {
     pub confidence: ConfidenceKind,
 }
 
+/// Builds a deterministic [`Issue`] without a long positional argument list.
+#[derive(Debug)]
+pub struct IssueBuilder {
+    id: String,
+    title: String,
+    message: String,
+    file: PathBuf,
+    line: usize,
+    column: usize,
+    severity: Severity,
+    category: Category,
+    explanation: Option<&'static str>,
+    remediation: Option<&'static str>,
+}
+
 impl Issue {
-    #[allow(clippy::too_many_arguments)]
-    pub fn deterministic(
+    pub fn builder(
         id: impl Into<String>,
         title: impl Into<String>,
         message: impl Into<String>,
         file: PathBuf,
         line: usize,
         column: usize,
-        severity: Severity,
-        category: Category,
-    ) -> Self {
-        Self {
+    ) -> IssueBuilder {
+        IssueBuilder {
             id: id.into(),
             title: title.into(),
             message: message.into(),
-            explanation: None,
-            remediation: None,
             file,
             line,
             column,
-            severity,
-            category,
-            source: "zerum".to_string(),
-            confidence: ConfidenceKind::Deterministic,
+            severity: Severity::Medium,
+            category: Category::Design,
+            explanation: None,
+            remediation: None,
         }
     }
 
-    pub fn with_guidance(mut self, explanation: impl Into<String>, remediation: impl Into<String>) -> Self {
-        self.explanation = Some(explanation.into());
-        self.remediation = Some(remediation.into());
+    pub fn from_check(
+        check: &dyn Check,
+        message: impl Into<String>,
+        file: PathBuf,
+        line: usize,
+        column: usize,
+    ) -> Self {
+        Self::builder(check.id(), check.name(), message, file, line, column)
+            .severity(check.severity())
+            .category(check.category())
+            .guidance(check.explanation(), check.remediation())
+            .build()
+    }
+}
+
+impl IssueBuilder {
+    pub fn severity(mut self, severity: Severity) -> Self {
+        self.severity = severity;
         self
+    }
+
+    pub fn category(mut self, category: Category) -> Self {
+        self.category = category;
+        self
+    }
+
+    pub fn guidance(mut self, explanation: &'static str, remediation: &'static str) -> Self {
+        self.explanation = Some(explanation);
+        self.remediation = Some(remediation);
+        self
+    }
+
+    pub fn build(self) -> Issue {
+        Issue {
+            id: self.id,
+            title: self.title,
+            message: self.message,
+            explanation: self.explanation.map(Cow::Borrowed),
+            remediation: self.remediation.map(Cow::Borrowed),
+            file: self.file,
+            line: self.line,
+            column: self.column,
+            severity: self.severity,
+            category: self.category,
+            source: "zerum".to_string(),
+            confidence: ConfidenceKind::Deterministic,
+        }
     }
 }

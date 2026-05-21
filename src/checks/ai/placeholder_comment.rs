@@ -42,17 +42,13 @@ impl Check for AiPlaceholderComment {
                 let comment = comment_text(line)?;
                 find_pattern(comment).map(|pattern| {
                     let column = comment_position(line, pattern);
-                    Issue::deterministic(
-                        self.id(),
-                        self.name(),
+                    Issue::from_check(
+                        self,
                         format!("suspicious AI-related placeholder: `{pattern}`"),
                         ctx.file_path(),
                         idx + 1,
                         column,
-                        self.severity(),
-                        self.category(),
                     )
-                    .with_guidance(self.explanation(), self.remediation())
                 })
             })
             .collect()

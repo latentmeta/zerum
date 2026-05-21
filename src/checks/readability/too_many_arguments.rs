@@ -44,9 +44,8 @@ impl Check for TooManyArguments {
             .into_iter()
             .filter(|m| m.arg_count > max)
             .map(|m| {
-                Issue::deterministic(
-                    self.id(),
-                    self.name(),
+                Issue::from_check(
+                    self,
                     format!(
                         "function `{}` has {} arguments (max {})",
                         m.name, m.arg_count, max
@@ -54,10 +53,7 @@ impl Check for TooManyArguments {
                     ctx.file_path(),
                     m.line,
                     m.column,
-                    self.severity(),
-                    self.category(),
                 )
-                .with_guidance(self.explanation(), self.remediation())
             })
             .collect()
     }

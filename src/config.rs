@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct Config {
@@ -63,6 +64,17 @@ pub struct ForbiddenImportRule {
     pub forbidden: String,
 }
 
+fn default_check_config() -> &'static CheckConfig {
+    static DEFAULT: OnceLock<CheckConfig> = OnceLock::new();
+    DEFAULT.get_or_init(CheckConfig::default)
+}
+
+fn is_project_root(dir: &Path) -> bool {
+    dir.join(".git").exists()
+        || dir.join("pyproject.toml").is_file()
+        || dir.join("zerum.toml").is_file()
+}
+
 impl Config {
     pub fn load(path: &Path) -> Result<Self> {
         let raw = std::fs::read_to_string(path)
@@ -94,21 +106,15 @@ impl Config {
     }
 
     pub fn is_check_enabled(&self, id: &str) -> bool {
-        self.checks
-            .get(id)
-            .map(|c| c.enabled)
-            .unwrap_or(true)
+        self.check_config(id).enabled
     }
 
-    pub fn check_config(&self, id: &str) -> CheckConfig {
-        self.checks.get(id).cloned().unwrap_or_default()
+    pub fn check_config(&self, id: &str) -> &CheckConfig {
+        match self.checks.get(id) {
+            Some(cfg) => cfg,
+            None => default_check_config(),
+        }
     }
-}
-
-fn is_project_root(dir: &Path) -> bool {
-    dir.join(".git").exists()
-        || dir.join("pyproject.toml").is_file()
-        || dir.join("zerum.toml").is_file()
 }
 
 #[cfg(test)]
@@ -128,6 +134,14 @@ mod tests {
         let config = Config::default();
         assert!(config.is_check_enabled("ZR999"));
         assert!(config.check_config("ZR999").enabled);
+    }
+
+    #[test]
+    fn check_config_returns_shared_default_without_clone() {
+        let config = Config::default();
+        let a = config.check_config("ZR999") as *const CheckConfig;
+        let b = config.check_config("ZR888") as *const CheckConfig;
+        assert_eq!(a, b);
     }
 
     #[test]

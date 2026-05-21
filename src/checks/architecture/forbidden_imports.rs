@@ -33,7 +33,7 @@ impl Check for ForbiddenArchitectureImport {
         if !ctx.config.is_check_enabled(self.id()) {
             return Vec::new();
         }
-        let rules = ctx.config.check_config(self.id()).rules;
+        let rules = &ctx.config.check_config(self.id()).rules;
         if rules.is_empty() {
             return Vec::new();
         }
@@ -44,26 +44,20 @@ impl Check for ForbiddenArchitectureImport {
             if module.is_empty() {
                 continue;
             }
-            for rule in &rules {
+            for rule in rules {
                 if path_contains_layer(file, &rule.from)
                     && module_matches_forbidden(&module, &rule.forbidden)
                 {
-                    issues.push(
-                        Issue::deterministic(
-                            self.id(),
-                            self.name(),
-                            format!(
-                                "module `{module}` must not be imported from `{from}` layer",
-                                from = rule.from
-                            ),
-                            ctx.file_path(),
-                            line,
-                            column,
-                            self.severity(),
-                            self.category(),
-                        )
-                        .with_guidance(self.explanation(), self.remediation()),
-                    );
+                    issues.push(Issue::from_check(
+                        self,
+                        format!(
+                            "module `{module}` must not be imported from `{from}` layer",
+                            from = rule.from
+                        ),
+                        ctx.file_path(),
+                        line,
+                        column,
+                    ));
                 }
             }
         }

@@ -40,19 +40,13 @@ impl Check for BroadExcept {
             if crate::core::ast_util::is_broad_except_handler(handler) {
                 let ExceptHandler::ExceptHandler(h) = handler;
                 let (line, column) = line_col(&ctx.parsed.source, h.start().into());
-                issues.push(
-                    Issue::deterministic(
-                        self.id(),
-                        self.name(),
-                        "broad or bare except handler swallows errors",
-                        ctx.file_path(),
-                        line,
-                        column,
-                        self.severity(),
-                        self.category(),
-                    )
-                    .with_guidance(self.explanation(), self.remediation()),
-                );
+                issues.push(Issue::from_check(
+                    self,
+                    "broad or bare except handler swallows errors",
+                    ctx.file_path(),
+                    line,
+                    column,
+                ));
             }
         });
         issues

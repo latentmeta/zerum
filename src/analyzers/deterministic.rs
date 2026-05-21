@@ -53,7 +53,7 @@ impl DeterministicAnalyzer {
             config,
         };
         let mut issues = Vec::new();
-        for check in self.registry.all() {
+        for check in self.registry.iter() {
             if config.is_check_enabled(check.id()) {
                 issues.extend(check.run(&ctx));
             }

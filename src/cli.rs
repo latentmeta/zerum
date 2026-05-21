@@ -2,9 +2,9 @@ use crate::analyzers::DeterministicAnalyzer;
 use crate::config::Config;
 use crate::core::CheckRegistry;
 use crate::discovery::discover_python_files;
-use crate::reporters::{ReportFormat, report};
+use crate::reporters::{ReportKind, render};
 use anyhow::{Context, Result, bail};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
@@ -12,6 +12,26 @@ use std::process::ExitCode;
 pub const EXIT_ISSUES: u8 = 1;
 /// Exit code for operational failures (I/O, parse errors on all files, CLI errors).
 pub const EXIT_ERROR: u8 = 2;
+
+#[derive(Debug, Clone, Copy, Default, ValueEnum)]
+pub enum ReportFormat {
+    #[default]
+    Human,
+    Json,
+    Markdown,
+    Sarif,
+}
+
+impl From<ReportFormat> for ReportKind {
+    fn from(format: ReportFormat) -> Self {
+        match format {
+            ReportFormat::Human => ReportKind::Human,
+            ReportFormat::Json => ReportKind::Json,
+            ReportFormat::Markdown => ReportKind::Markdown,
+            ReportFormat::Sarif => ReportKind::Sarif,
+        }
+    }
+}
 
 #[derive(Parser, Debug)]
 #[command(name = "zerum", version, about = "Deterministic code governance for Python")]
@@ -22,7 +42,7 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Run deterministic checks on a path
+    /// Run deterministic checks on a path (exits 1 when issues are found)
     Check {
         path: PathBuf,
         #[arg(long)]
@@ -32,7 +52,7 @@ enum Commands {
         #[arg(long, value_enum, default_value_t = ReportFormat::Human)]
         format: ReportFormat,
     },
-    /// Alias for check (review hooks reserved for LLM phase)
+    /// Run checks and print results without failing on findings (exits 0 unless operational error)
     Review {
         path: PathBuf,
         #[arg(long, value_enum, default_value_t = ReportFormat::Human)]
@@ -62,9 +82,9 @@ impl Cli {
                 if with_llm {
                     eprintln!("note: LLM review is not enabled in v0.1.0; running deterministic checks only");
                 }
-                run_check(&path, format)
+                run_check(&path, format, FailOnIssues::Yes)
             }
-            Commands::Review { path, format } => run_check(&path, format),
+            Commands::Review { path, format } => run_check(&path, format, FailOnIssues::No),
             Commands::Explain { id } => run_explain(&id),
             Commands::Init => run_init(),
             Commands::ListChecks => run_list_checks(),
@@ -73,7 +93,12 @@ impl Cli {
     }
 }
 
-fn run_check(path: &Path, format: ReportFormat) -> Result<ExitCode> {
+enum FailOnIssues {
+    Yes,
+    No,
+}
+
+fn run_check(path: &Path, format: ReportFormat, fail_on_issues: FailOnIssues) -> Result<ExitCode> {
     let config = Config::discover(path)?;
     let files = discover_python_files(path)?;
     if files.is_empty() {
@@ -81,15 +106,17 @@ fn run_check(path: &Path, format: ReportFormat) -> Result<ExitCode> {
     }
     let analyzer = DeterministicAnalyzer::new();
     let result = analyzer.analyze_paths(&files, &config);
-    println!("{}", report(format, &result.issues)?);
+    println!("{}", render(format.into(), &result.issues)?);
 
     if !result.file_errors.is_empty() && result.issues.is_empty() {
         return Ok(ExitCode::from(EXIT_ERROR));
     }
     if result.issues.is_empty() {
-        Ok(ExitCode::SUCCESS)
-    } else {
-        Ok(ExitCode::from(EXIT_ISSUES))
+        return Ok(ExitCode::SUCCESS);
+    }
+    match fail_on_issues {
+        FailOnIssues::Yes => Ok(ExitCode::from(EXIT_ISSUES)),
+        FailOnIssues::No => Ok(ExitCode::SUCCESS),
     }
 }
 
@@ -120,7 +147,7 @@ fn run_init() -> Result<ExitCode> {
 
 fn run_list_checks() -> Result<ExitCode> {
     let registry = CheckRegistry::new();
-    for check in registry.all() {
+    for check in registry.iter() {
         println!(
             "{}  {}  [{}] {}",
             check.id(),

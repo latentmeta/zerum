@@ -39,19 +39,13 @@ impl Check for PrintDebugging {
         walk_exprs_in_module(ctx.parsed, &mut |expr| {
             if is_print_call(expr) {
                 let (line, column) = line_col(&ctx.parsed.source, expr.start().into());
-                issues.push(
-                    Issue::deterministic(
-                        self.id(),
-                        self.name(),
-                        "print() used for debugging",
-                        ctx.file_path(),
-                        line,
-                        column,
-                        self.severity(),
-                        self.category(),
-                    )
-                    .with_guidance(self.explanation(), self.remediation()),
-                );
+                issues.push(Issue::from_check(
+                    self,
+                    "print() used for debugging",
+                    ctx.file_path(),
+                    line,
+                    column,
+                ));
             }
         });
         issues

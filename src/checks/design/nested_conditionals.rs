@@ -44,9 +44,8 @@ impl Check for NestedConditionals {
             .into_iter()
             .filter(|m| m.max_conditional_depth > max)
             .map(|m| {
-                Issue::deterministic(
-                    self.id(),
-                    self.name(),
+                Issue::from_check(
+                    self,
                     format!(
                         "function `{}` has conditional nesting depth {} (max {})",
                         m.name, m.max_conditional_depth, max
@@ -54,10 +53,7 @@ impl Check for NestedConditionals {
                     ctx.file_path(),
                     m.line,
                     m.column,
-                    self.severity(),
-                    self.category(),
                 )
-                .with_guidance(self.explanation(), self.remediation())
             })
             .collect()
     }

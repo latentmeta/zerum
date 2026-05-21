@@ -16,19 +16,22 @@ Zerum is **not** a Ruff clone. It focuses on explainable governance, maintainabi
 cargo build
 cargo run -- list-checks
 cargo run -- check path/to/python/project
+cargo run -- review path/to/python/project   # same analysis, exits 0 when issues exist
 cargo run -- explain ZR001
 cargo run -- init
 ```
 
 `zerum init` writes `zerum.toml` from `zerum.toml.example`. You can also copy the example file manually.
 
-## Exit codes
+## Exit codes (`check`)
 
 | Code | Meaning |
 |------|---------|
 | 0 | No issues |
 | 1 | Issues found |
 | 2 | Operational error (missing path, parse/read failure on all files, CLI error) |
+
+`zerum review` uses the same analysis and reporters but exits **0** when issues are found (only **2** on operational failure).
 
 ## Checks (v0.1.0)
 

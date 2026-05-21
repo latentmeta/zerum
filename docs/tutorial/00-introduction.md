@@ -36,7 +36,8 @@ CLI → Config + Discovery → DeterministicAnalyzer
 ```bash
 cargo build
 cargo run -- list-checks
-cargo run -- check tests/fixtures/bad_project
+cargo run -- check tests/fixtures/bad_project   # exits 1 when issues exist
+cargo run -- review tests/fixtures/bad_project  # exits 0 when issues exist
 cargo run -- explain ZR001
 cargo run -- init
 ```
@@ -44,7 +45,7 @@ cargo run -- init
 ## Reviewer checklist
 
 - [ ] `cargo test` passes
-- [ ] `zerum check` on `bad_project` exits 1
+- [ ] `zerum check` on `bad_project` exits 1; `zerum review` exits 0 with the same output
 - [ ] Each check id appears in `list-checks`
 - [ ] Tutorial chapters 01–03 match the code layout
 

@@ -38,19 +38,13 @@ impl Check for MutableDefaultArgument {
         walk_function_defs(ctx.parsed, &mut |args, start, name| {
             if has_mutable_defaults(args) {
                 let (line, column) = line_col(&ctx.parsed.source, start.into());
-                issues.push(
-                    Issue::deterministic(
-                        self.id(),
-                        self.name(),
-                        format!("function `{name}` uses a mutable default argument"),
-                        ctx.file_path(),
-                        line,
-                        column,
-                        self.severity(),
-                        self.category(),
-                    )
-                    .with_guidance(self.explanation(), self.remediation()),
-                );
+                issues.push(Issue::from_check(
+                    self,
+                    format!("function `{name}` uses a mutable default argument"),
+                    ctx.file_path(),
+                    line,
+                    column,
+                ));
             }
         });
         issues

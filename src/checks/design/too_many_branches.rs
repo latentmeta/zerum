@@ -44,9 +44,8 @@ impl Check for TooManyBranches {
             .into_iter()
             .filter(|m| m.branch_count > max)
             .map(|m| {
-                Issue::deterministic(
-                    self.id(),
-                    self.name(),
+                Issue::from_check(
+                    self,
                     format!(
                         "function `{}` has {} branches (max {})",
                         m.name, m.branch_count, max
@@ -54,10 +53,7 @@ impl Check for TooManyBranches {
                     ctx.file_path(),
                     m.line,
                     m.column,
-                    self.severity(),
-                    self.category(),
                 )
-                .with_guidance(self.explanation(), self.remediation())
             })
             .collect()
     }
