@@ -17,10 +17,18 @@ cargo build
 cargo run -- list-checks
 cargo run -- check path/to/python/project
 cargo run -- explain ZR001
-cargo run -- init    # creates zerum.toml from zerum.toml.example
+cargo run -- init
 ```
 
-Copy `zerum.toml.example` to `zerum.toml` to tune thresholds (e.g. `max_branches`, forbidden imports).
+`zerum init` writes `zerum.toml` from `zerum.toml.example`. You can also copy the example file manually.
+
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | No issues |
+| 1 | Issues found |
+| 2 | Operational error (missing path, parse/read failure on all files, CLI error) |
 
 ## Checks (v0.1.0)
 
@@ -40,10 +48,10 @@ Copy `zerum.toml.example` to `zerum.toml` to tune thresholds (e.g. `max_branches
 ## Output formats
 
 ```bash
-zerum check . --format human    # default
-zerum check . --format json
-zerum check . --format sarif
-zerum check . --format markdown
+cargo run -- check . --format human    # default
+cargo run -- check . --format json
+cargo run -- check . --format sarif
+cargo run -- check . --format markdown
 ```
 
 ## Tutorial
@@ -60,7 +68,7 @@ Educational material lives under [`docs/tutorial/`](docs/tutorial/):
 
 ```bash
 cargo test
-cargo run -- check tests/fixtures/bad_project
+cargo run -- check tests/fixtures/bad_project   # exits 1
 ```
 
 ## License

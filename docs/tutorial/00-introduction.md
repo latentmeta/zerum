@@ -38,20 +38,20 @@ cargo build
 cargo run -- list-checks
 cargo run -- check tests/fixtures/bad_project
 cargo run -- explain ZR001
-cargo run -- init   # writes zerum.toml from example
+cargo run -- init
 ```
 
 ## Reviewer checklist
 
 - [ ] `cargo test` passes
-- [ ] `zerum check` on `bad_project` exits non-zero
+- [ ] `zerum check` on `bad_project` exits 1
 - [ ] Each check id appears in `list-checks`
 - [ ] Tutorial chapters 01–03 match the code layout
 
 ## Next phases
 
-- **Phase 2** — TOML profiles, per-check tuning, external checker trait + Ruff adapter
-- **Phase 3** — SARIF polish, CI recipes, architecture import rules in real monorepos
-- **Phase 4** — Opt-in LLM review, audit trail, consensus
+- **Phase 2** — external checker trait + Ruff adapter
+- **Phase 3** — stronger architecture rules, SARIF validation
+- **Phase 4** — opt-in LLM review, audit trail, consensus
 
-See `12-roadmap.md` (to be expanded) for the full sequence.
+See [12 — Roadmap](12-roadmap.md) for the full sequence.

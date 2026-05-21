@@ -83,6 +83,9 @@ impl Config {
             if candidate.is_file() {
                 return Self::load(&candidate);
             }
+            if is_project_root(&dir) {
+                break;
+            }
             if !dir.pop() {
                 break;
             }
@@ -102,9 +105,17 @@ impl Config {
     }
 }
 
+fn is_project_root(dir: &Path) -> bool {
+    dir.join(".git").exists()
+        || dir.join("pyproject.toml").is_file()
+        || dir.join("zerum.toml").is_file()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use tempfile::tempdir;
 
     #[test]
     fn check_config_default_is_enabled() {
@@ -117,5 +128,17 @@ mod tests {
         let config = Config::default();
         assert!(config.is_check_enabled("ZR999"));
         assert!(config.check_config("ZR999").enabled);
+    }
+
+    #[test]
+    fn discover_stops_at_project_root_without_config() {
+        let outer = tempdir().unwrap();
+        let project = outer.path().join("myapp");
+        fs::create_dir_all(project.join("src")).unwrap();
+        fs::write(project.join("pyproject.toml"), "[project]\nname = \"x\"\n").unwrap();
+        fs::write(outer.path().join("zerum.toml"), "name = \"wrong\"\n").unwrap();
+
+        let config = Config::discover(&project.join("src")).unwrap();
+        assert!(config.checks.is_empty());
     }
 }

@@ -18,15 +18,15 @@ pub trait PythonParser: Send + Sync {
 - Produces a Python 3 AST aligned with `rustpython-ast`
 - Good enough for governance rules on `.py` files
 
-**Tradeoff:** Parser errors skip a file with a warning; we do not ship a full type checker in v0.1.0.
+**Tradeoff:** A file that fails to parse is skipped with a warning on stderr. If every file fails, the CLI exits with code 2.
 
 ## AST version notes (0.4)
 
-`rustpython-ast` 0.4 uses **tuple-style** enum variants (`Stmt::FunctionDef(f)`), not struct variants. Function parameters use `Arguments` with per-argument `ArgWithDefault`—not legacy `defaults` / `kw_defaults` vectors.
+`rustpython-ast` 0.4 uses **tuple-style** enum variants (`Stmt::FunctionDef(f)`), not struct variants. Function parameters use `Arguments` with per-argument `ArgWithDefault`.
 
 ## Line and column
 
-Byte offsets from `Ranged::start()` are converted via `line_col(source, offset)` in `parser/mod.rs` (1-based line, 1-based column).
+Byte offsets from `Ranged::start()` are converted via `line_col(source, offset)` in `parser/mod.rs`. Line numbers are 1-based. Column is a **byte offset** within the line (not grapheme-aware).
 
 ## Files to read
 

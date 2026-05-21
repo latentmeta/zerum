@@ -108,106 +108,16 @@ pub fn has_mutable_defaults(args: &Arguments) -> bool {
 }
 
 pub fn walk_stmts_for_try(parsed: &ParsedFile, f: &mut impl FnMut(&ExceptHandler)) {
-    fn inner(stmts: &[Stmt], f: &mut impl FnMut(&ExceptHandler)) {
-        for stmt in stmts {
-            match stmt {
-                Stmt::Try(t) => visit_try(t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), f),
-                Stmt::TryStar(t) => visit_try(t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), f),
-                Stmt::FunctionDef(fd) => inner(&fd.body, f),
-                Stmt::AsyncFunctionDef(fd) => inner(&fd.body, f),
-                Stmt::ClassDef(c) => inner(&c.body, f),
-                Stmt::If(i) => {
-                    inner(&i.body, f);
-                    inner(&i.orelse, f);
-                }
-                Stmt::While(w) => {
-                    inner(&w.body, f);
-                    inner(&w.orelse, f);
-                }
-                Stmt::For(fr) => {
-                    inner(&fr.body, f);
-                    inner(&fr.orelse, f);
-                }
-                Stmt::AsyncFor(fr) => {
-                    inner(&fr.body, f);
-                    inner(&fr.orelse, f);
-                }
-                Stmt::With(w) => inner(&w.body, f),
-                Stmt::AsyncWith(w) => inner(&w.body, f),
-                Stmt::Match(m) => {
-                    for case in &m.cases {
-                        inner(&case.body, f);
-                    }
-                }
-                _ => {}
-            }
+    walk_stmts(parsed, module_body(&parsed.module), &mut |stmt| {
+        let handlers = match stmt {
+            Stmt::Try(t) => &t.handlers,
+            Stmt::TryStar(t) => &t.handlers,
+            _ => return,
+        };
+        for h in handlers {
+            f(h);
         }
-    }
-    inner(module_body(&parsed.module), f);
-}
-
-fn visit_try(
-    body: &[Stmt],
-    handlers: &[ExceptHandler],
-    orelse: &[Stmt],
-    finalbody: &[Stmt],
-    f: &mut impl FnMut(&ExceptHandler),
-) {
-    for h in handlers {
-        f(h);
-    }
-    walk_try_children(body, handlers, orelse, finalbody, f);
-}
-
-fn walk_try_children(
-    body: &[Stmt],
-    handlers: &[ExceptHandler],
-    orelse: &[Stmt],
-    finalbody: &[Stmt],
-    f: &mut impl FnMut(&ExceptHandler),
-) {
-    fn inner(stmts: &[Stmt], f: &mut impl FnMut(&ExceptHandler)) {
-        for stmt in stmts {
-            match stmt {
-                Stmt::Try(t) => visit_try(t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), f),
-                Stmt::TryStar(t) => visit_try(t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), f),
-                Stmt::FunctionDef(fd) => inner(&fd.body, f),
-                Stmt::AsyncFunctionDef(fd) => inner(&fd.body, f),
-                Stmt::ClassDef(c) => inner(&c.body, f),
-                Stmt::If(i) => {
-                    inner(&i.body, f);
-                    inner(&i.orelse, f);
-                }
-                Stmt::While(w) => {
-                    inner(&w.body, f);
-                    inner(&w.orelse, f);
-                }
-                Stmt::For(fr) => {
-                    inner(&fr.body, f);
-                    inner(&fr.orelse, f);
-                }
-                Stmt::AsyncFor(fr) => {
-                    inner(&fr.body, f);
-                    inner(&fr.orelse, f);
-                }
-                Stmt::With(w) => inner(&w.body, f),
-                Stmt::AsyncWith(w) => inner(&w.body, f),
-                Stmt::Match(m) => {
-                    for case in &m.cases {
-                        inner(&case.body, f);
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-    inner(body, f);
-    for h in handlers {
-        let ExceptHandler::ExceptHandler(h) = h;
-        inner(&h.body, f);
-    }
-    inner(orelse, f);
-    inner(finalbody, f);
+    });
 }
 
 pub fn is_print_call(expr: &Expr) -> bool {

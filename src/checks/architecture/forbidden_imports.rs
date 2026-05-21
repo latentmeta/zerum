@@ -1,5 +1,6 @@
 use crate::core::ast_util::collect_import_modules;
 use crate::core::{Category, Check, CheckContext, Issue, Severity};
+use std::path::Path;
 
 pub struct ForbiddenArchitectureImport;
 
@@ -37,20 +38,23 @@ impl Check for ForbiddenArchitectureImport {
             return Vec::new();
         }
 
-        let file = ctx.file_path().display().to_string();
+        let file = ctx.path;
         let mut issues = Vec::new();
         for (module, line, column) in collect_import_modules(ctx.parsed) {
+            if module.is_empty() {
+                continue;
+            }
             for rule in &rules {
-                if file.contains(&rule.from.replace('.', std::path::MAIN_SEPARATOR_STR))
-                    && module.starts_with(&rule.forbidden)
+                if path_contains_layer(file, &rule.from)
+                    && module_matches_forbidden(&module, &rule.forbidden)
                 {
                     issues.push(
                         Issue::deterministic(
                             self.id(),
                             self.name(),
                             format!(
-                                "module `{}` must not import `{}` from `{}` context",
-                                module, rule.forbidden, rule.from
+                                "module `{module}` must not be imported from `{from}` layer",
+                                from = rule.from
                             ),
                             ctx.file_path(),
                             line,
@@ -64,5 +68,67 @@ impl Check for ForbiddenArchitectureImport {
             }
         }
         issues
+    }
+}
+
+fn path_contains_layer(path: &Path, layer: &str) -> bool {
+    let layer_parts: Vec<&str> = layer.split('.').collect();
+    if layer_parts.is_empty() {
+        return false;
+    }
+    let components: Vec<&str> = path
+        .components()
+        .filter_map(|c| c.as_os_str().to_str())
+        .collect();
+    components
+        .windows(layer_parts.len())
+        .any(|window| window == layer_parts.as_slice())
+}
+
+fn module_matches_forbidden(module: &str, forbidden: &str) -> bool {
+    module == forbidden || module.starts_with(&format!("{forbidden}."))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use crate::parser::{PythonParser, RustPythonParser};
+    use std::path::Path;
+
+    #[test]
+    fn flags_forbidden_import_in_domain_layer() {
+        let source = "from app.infrastructure.db import connect\n";
+        let path = Path::new("app/domain/service.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let mut config = Config::default();
+        config.checks.insert(
+            "ZR010".into(),
+            crate::config::CheckConfig {
+                enabled: true,
+                rules: vec![crate::config::ForbiddenImportRule {
+                    from: "app.domain".into(),
+                    forbidden: "app.infrastructure".into(),
+                }],
+                ..Default::default()
+            },
+        );
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        let issues = ForbiddenArchitectureImport.run(&ctx);
+        assert_eq!(issues.len(), 1);
+        assert_eq!(issues[0].id, "ZR010");
+    }
+
+    #[test]
+    fn does_not_match_prefix_extension() {
+        assert!(!module_matches_forbidden(
+            "app.infrastructure_extra",
+            "app.infrastructure"
+        ));
     }
 }

@@ -45,3 +45,21 @@ impl CheckRegistry {
         self.checks.iter().find(|c| c.id() == id)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn registry_has_unique_zr_ids() {
+        let registry = CheckRegistry::new();
+        let mut ids: Vec<_> = registry.all().iter().map(|c| c.id()).collect();
+        ids.sort_unstable();
+        assert_eq!(ids.len(), 10);
+        for id in &ids {
+            assert!(id.starts_with("ZR"));
+            assert_eq!(id.len(), 5);
+        }
+        assert_eq!(ids.windows(2).filter(|w| w[0] == w[1]).count(), 0);
+    }
+}
