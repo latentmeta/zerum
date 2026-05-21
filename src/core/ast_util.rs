@@ -203,9 +203,8 @@ fn walk_try_children(
     }
     inner(body, f);
     for h in handlers {
-        if let ExceptHandler::ExceptHandler(h) = h {
-            inner(&h.body, f);
-        }
+        let ExceptHandler::ExceptHandler(h) = h;
+        inner(&h.body, f);
     }
     inner(orelse, f);
     inner(finalbody, f);
@@ -219,9 +218,7 @@ pub fn is_print_call(expr: &Expr) -> bool {
 }
 
 pub fn is_broad_except_handler(handler: &ExceptHandler) -> bool {
-    let ExceptHandler::ExceptHandler(h) = handler else {
-        return false;
-    };
+    let ExceptHandler::ExceptHandler(h) = handler;
     h.type_.is_none()
         || matches!(
             h.type_.as_deref(),
@@ -296,9 +293,8 @@ fn walk_try_stmts(
 ) {
     walk_stmts(parsed, body, visitor);
     for h in handlers {
-        if let ExceptHandler::ExceptHandler(h) = h {
-            walk_stmts(parsed, &h.body, visitor);
-        }
+        let ExceptHandler::ExceptHandler(h) = h;
+        walk_stmts(parsed, &h.body, visitor);
     }
     walk_stmts(parsed, orelse, visitor);
     walk_stmts(parsed, finalbody, visitor);
@@ -411,12 +407,11 @@ fn walk_exprs_try(
 ) {
     walk_exprs(body, f);
     for h in handlers {
-        if let ExceptHandler::ExceptHandler(h) = h {
-            if let Some(ty) = &h.type_ {
-                walk_expr(ty, f);
-            }
-            walk_exprs(&h.body, f);
+        let ExceptHandler::ExceptHandler(h) = h;
+        if let Some(ty) = &h.type_ {
+            walk_expr(ty, f);
         }
+        walk_exprs(&h.body, f);
     }
     walk_exprs(orelse, f);
     walk_exprs(finalbody, f);
@@ -565,9 +560,8 @@ fn count_branches(stmts: &[Stmt]) -> usize {
                 n += 1 + t.handlers.len();
                 n += count_branches(&t.body);
                 for h in &t.handlers {
-                    if let ExceptHandler::ExceptHandler(h) = h {
-                        n += count_branches(&h.body);
-                    }
+                    let ExceptHandler::ExceptHandler(h) = h;
+                    n += count_branches(&h.body);
                 }
                 n += count_branches(&t.orelse);
                 n += count_branches(&t.finalbody);
@@ -576,9 +570,8 @@ fn count_branches(stmts: &[Stmt]) -> usize {
                 n += 1 + t.handlers.len();
                 n += count_branches(&t.body);
                 for h in &t.handlers {
-                    if let ExceptHandler::ExceptHandler(h) = h {
-                        n += count_branches(&h.body);
-                    }
+                    let ExceptHandler::ExceptHandler(h) = h;
+                    n += count_branches(&h.body);
                 }
                 n += count_branches(&t.orelse);
                 n += count_branches(&t.finalbody);
@@ -641,9 +634,8 @@ fn depth_try(
     let d = depth + 1;
     let mut m = max_conditional_depth(body, d);
     for h in handlers {
-        if let ExceptHandler::ExceptHandler(h) = h {
-            m = m.max(max_conditional_depth(&h.body, d));
-        }
+        let ExceptHandler::ExceptHandler(h) = h;
+        m = m.max(max_conditional_depth(&h.body, d));
     }
     m = m.max(max_conditional_depth(orelse, d));
     m.max(max_conditional_depth(finalbody, d))

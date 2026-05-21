@@ -28,6 +28,7 @@ pub struct Issue {
 }
 
 impl Issue {
+    #[allow(clippy::too_many_arguments)]
     pub fn deterministic(
         id: impl Into<String>,
         title: impl Into<String>,

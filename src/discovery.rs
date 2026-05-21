@@ -23,7 +23,11 @@ pub fn discover_python_files(root: &Path) -> Result<Vec<PathBuf>> {
         return Ok(files);
     }
 
-    for entry in WalkDir::new(root).follow_links(false).into_iter().filter_map(|e| e.ok()) {
+    for entry in WalkDir::new(root)
+        .follow_links(false)
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         let path = entry.path();
         if entry.file_type().is_dir() {
             if let Some(name) = path.file_name().and_then(|n| n.to_str()) {

@@ -1,5 +1,5 @@
 use crate::parser::{ParsedFile, PythonParser};
-use anyhow::{Context, Result};
+use anyhow::Result;
 use rustpython_parser::{parse, Mode, ParseError};
 use std::path::Path;
 
@@ -19,5 +19,5 @@ impl PythonParser for RustPythonParser {
 }
 
 fn map_parse_error(err: ParseError) -> anyhow::Error {
-    anyhow::Error::new(err).context("failed to parse Python source")
+    anyhow::anyhow!("failed to parse Python source: {err}")
 }

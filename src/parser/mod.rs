@@ -17,6 +17,7 @@ pub struct ParsedFile {
     pub module: Mod,
 }
 
+#[must_use]
 pub fn line_col(source: &str, offset: u32) -> (usize, usize) {
     let offset = offset as usize;
     let safe = offset.min(source.len());

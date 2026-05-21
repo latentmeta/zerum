@@ -40,6 +40,7 @@ impl CheckRegistry {
         &self.checks
     }
 
+    #[must_use]
     pub fn find(&self, id: &str) -> Option<&Arc<dyn Check>> {
         self.checks.iter().find(|c| c.id() == id)
     }

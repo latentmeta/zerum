@@ -1,8 +1,13 @@
+//! External checker orchestration (Ruff, Mypy, etc.).
+//!
+//! TODO(phase-2): wire `ExternalAnalyzer` into the CLI and `integrations/`.
+
+#![allow(dead_code)]
+
 use crate::core::Issue;
 use anyhow::Result;
 use std::path::Path;
 
-/// External checker orchestration (Ruff, Mypy, etc.) — Phase 2.
 pub struct ExternalAnalyzer;
 
 impl ExternalAnalyzer {
