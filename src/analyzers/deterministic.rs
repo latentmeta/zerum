@@ -2,11 +2,23 @@ use crate::config::Config;
 use crate::core::{CheckContext, CheckRegistry, Issue};
 use crate::parser::{PythonParser, RustPythonParser};
 use anyhow::{Context, Result};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub struct DeterministicAnalyzer {
     registry: CheckRegistry,
     parser: RustPythonParser,
+}
+
+#[derive(Debug, Default)]
+pub struct AnalyzeResult {
+    pub issues: Vec<Issue>,
+    pub file_errors: Vec<FileError>,
+}
+
+#[derive(Debug, Clone)]
+pub struct FileError {
+    pub path: PathBuf,
+    pub message: String,
 }
 
 impl Default for DeterministicAnalyzer {
@@ -53,27 +65,36 @@ impl DeterministicAnalyzer {
                 a.column,
                 &a.id,
                 &a.message,
-            ).cmp(&(
-                &b.file,
-                b.line,
-                b.column,
-                &b.id,
-                &b.message,
-            ))
+            )
+                .cmp(&(&b.file, b.line, b.column, &b.id, &b.message))
         });
         Ok(issues)
     }
 
-    pub fn analyze_paths(&self, paths: &[std::path::PathBuf], config: &Config) -> Result<Vec<Issue>> {
-        let mut all = Vec::new();
+    pub fn analyze_paths(&self, paths: &[PathBuf], config: &Config) -> AnalyzeResult {
+        let mut result = AnalyzeResult::default();
         for path in paths {
             match self.analyze_file(path, config) {
-                Ok(mut issues) => all.append(&mut issues),
+                Ok(mut issues) => result.issues.append(&mut issues),
                 Err(err) => {
                     eprintln!("warning: {err:#}");
+                    result.file_errors.push(FileError {
+                        path: path.clone(),
+                        message: format!("{err:#}"),
+                    });
                 }
             }
         }
-        Ok(all)
+        result.issues.sort_by(|a, b| {
+            (
+                &a.file,
+                a.line,
+                a.column,
+                &a.id,
+                &a.message,
+            )
+                .cmp(&(&b.file, b.line, b.column, &b.id, &b.message))
+        });
+        result
     }
 }

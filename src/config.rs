@@ -21,7 +21,7 @@ fn default_profile_name() -> String {
     "default".to_string()
 }
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CheckConfig {
     #[serde(default = "default_enabled")]
     pub enabled: bool,
@@ -41,6 +41,20 @@ pub struct CheckConfig {
 
 fn default_enabled() -> bool {
     true
+}
+
+impl Default for CheckConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            max_branches: None,
+            max_arguments: None,
+            max_lines: None,
+            max_depth: None,
+            max_methods: None,
+            rules: Vec::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -85,5 +99,23 @@ impl Config {
 
     pub fn check_config(&self, id: &str) -> CheckConfig {
         self.checks.get(id).cloned().unwrap_or_default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_config_default_is_enabled() {
+        let cfg = CheckConfig::default();
+        assert!(cfg.enabled);
+    }
+
+    #[test]
+    fn missing_check_entry_defaults_to_enabled() {
+        let config = Config::default();
+        assert!(config.is_check_enabled("ZR999"));
+        assert!(config.check_config("ZR999").enabled);
     }
 }

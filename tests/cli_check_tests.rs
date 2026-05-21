@@ -23,9 +23,10 @@ fn check_bad_project_fails() {
         .args(["check", path])
         .output()
         .expect("run zerum check");
-    assert!(!output.status.success());
+    assert_eq!(output.status.code(), Some(1));
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("ZR002") || stdout.contains("ZR006"));
+    assert!(stdout.contains("ZR002"));
+    assert!(stdout.contains("ZR006"));
 }
 
 #[test]
@@ -35,7 +36,9 @@ fn check_simple_project_passes() {
         .args(["check", path])
         .output()
         .expect("run zerum check");
-    assert!(output.status.success());
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("No issues found"));
 }
 
 #[test]

@@ -522,14 +522,24 @@ fn walk_comprehension(
 }
 
 fn stmt_line_span(parsed: &ParsedFile, body: &[Stmt]) -> usize {
-    if body.is_empty() {
+    let mut min_line = usize::MAX;
+    let mut max_line = 0usize;
+    for stmt in body {
+        if matches!(
+            stmt,
+            Stmt::FunctionDef(_) | Stmt::AsyncFunctionDef(_) | Stmt::ClassDef(_)
+        ) {
+            continue;
+        }
+        let (start_line, _) = line_col(&parsed.source, offset(stmt.start()));
+        let (end_line, _) = line_col(&parsed.source, offset(stmt.end()));
+        min_line = min_line.min(start_line);
+        max_line = max_line.max(end_line);
+    }
+    if min_line == usize::MAX {
         return 0;
     }
-    let start = offset(body.first().unwrap().start());
-    let end = offset(body.last().unwrap().end());
-    let (start_line, _) = line_col(&parsed.source, start);
-    let (end_line, _) = line_col(&parsed.source, end);
-    end_line.saturating_sub(start_line).saturating_add(1)
+    max_line.saturating_sub(min_line).saturating_add(1)
 }
 
 fn count_branches(stmts: &[Stmt]) -> usize {
@@ -582,9 +592,6 @@ fn count_branches(stmts: &[Stmt]) -> usize {
                     n += count_branches(&case.body);
                 }
             }
-            Stmt::FunctionDef(f) => n += count_branches(&f.body),
-            Stmt::AsyncFunctionDef(f) => n += count_branches(&f.body),
-            Stmt::ClassDef(c) => n += count_branches(&c.body),
             Stmt::With(w) => n += count_branches(&w.body),
             Stmt::AsyncWith(w) => n += count_branches(&w.body),
             _ => {}
@@ -612,9 +619,6 @@ fn max_conditional_depth(stmts: &[Stmt], depth: usize) -> usize {
                 .map(|c| max_conditional_depth(&c.body, depth + 1))
                 .max()
                 .unwrap_or(depth),
-            Stmt::FunctionDef(f) => max_conditional_depth(&f.body, depth),
-            Stmt::AsyncFunctionDef(f) => max_conditional_depth(&f.body, depth),
-            Stmt::ClassDef(c) => max_conditional_depth(&c.body, depth),
             Stmt::With(w) => max_conditional_depth(&w.body, depth),
             Stmt::AsyncWith(w) => max_conditional_depth(&w.body, depth),
             _ => depth,
@@ -667,4 +671,37 @@ pub fn collect_import_modules(parsed: &ParsedFile) -> Vec<(String, usize, usize)
         }
     });
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parser::{PythonParser, RustPythonParser};
+    use std::path::Path;
+
+    #[test]
+    fn nested_function_depth_not_attributed_to_outer() {
+        let source = r#"
+def outer():
+    if a:
+        if b:
+            if c:
+                pass
+
+    def inner():
+        if e:
+            if f:
+                if g:
+                    if h:
+                        pass
+"#;
+        let parsed = RustPythonParser
+            .parse_file(source, Path::new("t.py"))
+            .unwrap();
+        let metrics = collect_function_metrics(&parsed);
+        let outer = metrics.iter().find(|m| m.name == "outer").unwrap();
+        let inner = metrics.iter().find(|m| m.name == "inner").unwrap();
+        assert_eq!(outer.max_conditional_depth, 3);
+        assert_eq!(inner.max_conditional_depth, 4);
+    }
 }

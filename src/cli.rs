@@ -6,6 +6,12 @@ use crate::reporters::{ReportFormat, report};
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
+use std::process::ExitCode;
+
+/// Exit code when issues are found.
+pub const EXIT_ISSUES: u8 = 1;
+/// Exit code for operational failures (I/O, parse errors on all files, CLI errors).
+pub const EXIT_ERROR: u8 = 2;
 
 #[derive(Parser, Debug)]
 #[command(name = "zerum", version, about = "Deterministic code governance for Python")]
@@ -45,7 +51,7 @@ enum Commands {
 }
 
 impl Cli {
-    pub fn run(self) -> Result<()> {
+    pub fn run(self) -> Result<ExitCode> {
         match self.command {
             Commands::Check {
                 path,
@@ -67,23 +73,27 @@ impl Cli {
     }
 }
 
-fn run_check(path: &Path, format: ReportFormat) -> Result<()> {
+fn run_check(path: &Path, format: ReportFormat) -> Result<ExitCode> {
     let config = Config::discover(path)?;
     let files = discover_python_files(path)?;
     if files.is_empty() {
         bail!("no Python files found under {}", path.display());
     }
     let analyzer = DeterministicAnalyzer::new();
-    let issues = analyzer.analyze_paths(&files, &config)?;
-    print!("{}", report(format, &issues)?);
-    if issues.is_empty() {
-        Ok(())
+    let result = analyzer.analyze_paths(&files, &config);
+    println!("{}", report(format, &result.issues)?);
+
+    if !result.file_errors.is_empty() && result.issues.is_empty() {
+        return Ok(ExitCode::from(EXIT_ERROR));
+    }
+    if result.issues.is_empty() {
+        Ok(ExitCode::SUCCESS)
     } else {
-        std::process::exit(1);
+        Ok(ExitCode::from(EXIT_ISSUES))
     }
 }
 
-fn run_explain(id: &str) -> Result<()> {
+fn run_explain(id: &str) -> Result<ExitCode> {
     let registry = CheckRegistry::new();
     let check = registry
         .find(id)
@@ -95,20 +105,20 @@ fn run_explain(id: &str) -> Result<()> {
     println!("{}", check.explanation());
     println!();
     println!("Remediation: {}", check.remediation());
-    Ok(())
+    Ok(ExitCode::SUCCESS)
 }
 
-fn run_init() -> Result<()> {
+fn run_init() -> Result<ExitCode> {
     let dest = PathBuf::from("zerum.toml");
     if dest.exists() {
         bail!("{} already exists", dest.display());
     }
     std::fs::write(&dest, include_str!("../zerum.toml.example"))?;
     println!("Wrote {}", dest.display());
-    Ok(())
+    Ok(ExitCode::SUCCESS)
 }
 
-fn run_list_checks() -> Result<()> {
+fn run_list_checks() -> Result<ExitCode> {
     let registry = CheckRegistry::new();
     for check in registry.all() {
         println!(
@@ -119,10 +129,10 @@ fn run_list_checks() -> Result<()> {
             check.severity()
         );
     }
-    Ok(())
+    Ok(ExitCode::SUCCESS)
 }
 
-fn run_list_checkers() -> Result<()> {
+fn run_list_checkers() -> Result<ExitCode> {
     println!("External checkers (planned): ruff, pylint, mypy, bandit, eslint, credo, sobelow, clippy");
-    Ok(())
+    Ok(ExitCode::SUCCESS)
 }
