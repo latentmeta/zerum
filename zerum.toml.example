@@ -1,0 +1,41 @@
+[profile]
+name = "default"
+
+[checks.ZR001]
+enabled = true
+max_branches = 8
+
+[checks.ZR002]
+enabled = true
+max_arguments = 5
+
+[checks.ZR003]
+enabled = true
+max_lines = 50
+
+[checks.ZR004]
+enabled = true
+max_depth = 3
+
+[checks.ZR005]
+enabled = true
+
+[checks.ZR006]
+enabled = true
+
+[checks.ZR007]
+enabled = true
+
+[checks.ZR008]
+enabled = true
+max_methods = 15
+
+[checks.ZR009]
+enabled = true
+
+[checks.ZR010]
+enabled = true
+
+[[checks.ZR010.rules]]
+from = "app.domain"
+forbidden = "app.infrastructure"
