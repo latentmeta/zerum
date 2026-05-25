@@ -58,3 +58,38 @@ impl Check for TooManyArguments {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use crate::parser::{PythonParser, RustPythonParser};
+    use std::path::Path;
+
+    fn run_check(source: &str) -> Vec<Issue> {
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        TooManyArguments.run(&ctx)
+    }
+
+    #[test]
+    fn at_max_arguments_is_clean() {
+        let source = "def f(a, b, c, d, e):\n    pass\n";
+        assert!(run_check(source).is_empty());
+    }
+
+    #[test]
+    fn over_max_arguments_flags() {
+        let source = "def f(a, b, c, d, e, f):\n    pass\n";
+        let issues = run_check(source);
+        assert_eq!(issues.len(), 1);
+        assert_eq!(issues[0].id, "ZR002");
+    }
+}

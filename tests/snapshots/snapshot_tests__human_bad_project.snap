@@ -1,13 +1,13 @@
 ---
 source: tests/snapshot_tests.rs
-expression: normalized
+expression: "run_check_format(\"human\")"
 ---
 [low] ZR002 ./tests/fixtures/bad_project/messy.py:1:1 — function `too_many_args` has 7 arguments (max 5)
   explanation: Functions with many parameters are difficult to call correctly and often indicate missing abstractions.
   remediation: Group related parameters into a dataclass or config object, or split the function.
 [low] ZR006 ./tests/fixtures/bad_project/messy.py:2:5 — print() used for debugging
   explanation: print() calls left in production code are noisy and usually indicate leftover debugging.
-  remediation: Use structured logging (logging module) or remove the statement before merging.
+  remediation: Use structured logging (logging module) or remove the statement before merging. Phase 1 only flags bare `print()` calls, not `builtins.print` or import aliases.
 [high] ZR005 ./tests/fixtures/bad_project/messy.py:5:5 — broad or bare except handler swallows errors
   explanation: Catching Exception or using bare except hides bugs and makes failures silent.
   remediation: Catch specific exception types and re-raise or log unexpected errors.

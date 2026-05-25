@@ -50,3 +50,41 @@ impl Check for MutableDefaultArgument {
         issues
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use crate::parser::{PythonParser, RustPythonParser};
+    use std::path::Path;
+
+    #[test]
+    fn flags_list_default() {
+        let source = "def f(items=[]):\n    return items\n";
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        assert_eq!(MutableDefaultArgument.run(&ctx).len(), 1);
+    }
+
+    #[test]
+    fn none_default_is_clean() {
+        let source = "def f(items=None):\n    return items\n";
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        assert!(MutableDefaultArgument.run(&ctx).is_empty());
+    }
+}

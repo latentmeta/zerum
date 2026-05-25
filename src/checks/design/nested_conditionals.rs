@@ -58,3 +58,57 @@ impl Check for NestedConditionals {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use crate::parser::{PythonParser, RustPythonParser};
+    use std::path::Path;
+
+    #[test]
+    fn flags_deep_nesting() {
+        let source = r#"
+def deep():
+    if a:
+        if b:
+            if c:
+                if d:
+                    pass
+"#;
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        let issues = NestedConditionals.run(&ctx);
+        assert_eq!(issues.len(), 1);
+        assert_eq!(issues[0].id, "ZR004");
+    }
+
+    #[test]
+    fn async_function_depth_counted() {
+        let source = r#"
+async def deep():
+    if a:
+        if b:
+            if c:
+                if d:
+                    pass
+"#;
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        assert_eq!(NestedConditionals.run(&ctx).len(), 1);
+    }
+}

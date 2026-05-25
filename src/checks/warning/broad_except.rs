@@ -52,3 +52,41 @@ impl Check for BroadExcept {
         issues
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use crate::parser::{PythonParser, RustPythonParser};
+    use std::path::Path;
+
+    #[test]
+    fn flags_bare_except() {
+        let source = "try:\n    pass\nexcept:\n    pass\n";
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        assert_eq!(BroadExcept.run(&ctx).len(), 1);
+    }
+
+    #[test]
+    fn specific_except_is_clean() {
+        let source = "try:\n    pass\nexcept ValueError:\n    pass\n";
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        assert!(BroadExcept.run(&ctx).is_empty());
+    }
+}

@@ -1,13 +1,13 @@
 # Roadmap
 
-## Phase 1 (current) — Foundation
+## Phase 1 (complete) — Foundation
 
 - [x] Core issue model and `Check` trait
 - [x] rustpython-parser integration
-- [x] ZR001–ZR010 checks
-- [x] CLI: `check`, `list-checks`, `explain`, `init`
-- [x] Reporters: human, JSON, Markdown, SARIF
-- [x] Exit codes 0 / 1 / 2
+- [x] ZR001–ZR010 checks with unit tests and fixtures
+- [x] CLI: `check`, `review`, `list-checks`, `explain`, `init`
+- [x] Reporters: human, JSON, Markdown, SARIF (snapshot tests on bad_project)
+- [x] Exit codes 0 / 1 / 2; `review` exits 0 on findings
 - [x] Tutorial chapters 00–03
 
 ## Phase 2 — Configuration and external tools
