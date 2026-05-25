@@ -81,8 +81,9 @@ pub fn collect_class_metrics(parsed: &ParsedFile) -> Vec<ClassMetrics> {
     out
 }
 
+/// Visits every expression in the module using [`walk_stmts`] for nesting (no duplicated control-flow descent).
 pub fn walk_exprs_in_module(parsed: &ParsedFile, f: &mut impl FnMut(&Expr)) {
-    walk_exprs(module_body(&parsed.module), f);
+    walk_stmts(parsed, module_body(&parsed.module), &mut |stmt| visit_stmt_exprs(stmt, f));
 }
 
 pub fn walk_function_defs(
@@ -120,6 +121,7 @@ pub fn walk_stmts_for_try(parsed: &ParsedFile, f: &mut impl FnMut(&ExceptHandler
     });
 }
 
+/// Detects bare `print(...)` calls. Does not match `builtins.print` or renamed imports (Phase 1 scope).
 pub fn is_print_call(expr: &Expr) -> bool {
     matches!(
         expr,
@@ -210,121 +212,86 @@ fn walk_try_stmts(
     walk_stmts(parsed, finalbody, visitor);
 }
 
-fn walk_exprs(stmts: &[Stmt], f: &mut impl FnMut(&Expr)) {
-    for stmt in stmts {
-        match stmt {
-            Stmt::FunctionDef(fd) => walk_exprs(&fd.body, f),
-            Stmt::AsyncFunctionDef(fd) => walk_exprs(&fd.body, f),
-            Stmt::ClassDef(cd) => walk_exprs(&cd.body, f),
-            Stmt::If(i) => {
-                walk_expr(&i.test, f);
-                walk_exprs(&i.body, f);
-                walk_exprs(&i.orelse, f);
-            }
-            Stmt::While(w) => {
-                walk_expr(&w.test, f);
-                walk_exprs(&w.body, f);
-                walk_exprs(&w.orelse, f);
-            }
-            Stmt::For(fr) => {
-                walk_expr(&fr.iter, f);
-                walk_exprs(&fr.body, f);
-                walk_exprs(&fr.orelse, f);
-            }
-            Stmt::AsyncFor(fr) => {
-                walk_expr(&fr.iter, f);
-                walk_exprs(&fr.body, f);
-                walk_exprs(&fr.orelse, f);
-            }
-            Stmt::With(w) => {
-                for item in &w.items {
-                    walk_expr(&item.context_expr, f);
-                    if let Some(v) = &item.optional_vars {
-                        walk_expr(v, f);
-                    }
-                }
-                walk_exprs(&w.body, f);
-            }
-            Stmt::AsyncWith(w) => {
-                for item in &w.items {
-                    walk_expr(&item.context_expr, f);
-                    if let Some(v) = &item.optional_vars {
-                        walk_expr(v, f);
-                    }
-                }
-                walk_exprs(&w.body, f);
-            }
-            Stmt::Try(t) => walk_exprs_try(t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), f),
-            Stmt::TryStar(t) => walk_exprs_try(t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), f),
-            Stmt::Match(m) => {
-                walk_expr(&m.subject, f);
-                for case in &m.cases {
-                    walk_pattern(&case.pattern, f);
-                    if let Some(g) = &case.guard {
-                        walk_expr(g, f);
-                    }
-                    walk_exprs(&case.body, f);
+/// Expression literals on a statement node. Child statement bodies are reached via [`walk_stmts`].
+fn visit_stmt_exprs(stmt: &Stmt, f: &mut impl FnMut(&Expr)) {
+    match stmt {
+        Stmt::FunctionDef(fd) => fd.decorator_list.iter().for_each(|d| walk_expr(d, f)),
+        Stmt::AsyncFunctionDef(fd) => fd.decorator_list.iter().for_each(|d| walk_expr(d, f)),
+        Stmt::ClassDef(cd) => cd.decorator_list.iter().for_each(|d| walk_expr(d, f)),
+        Stmt::If(i) => walk_expr(&i.test, f),
+        Stmt::While(w) => walk_expr(&w.test, f),
+        Stmt::For(fr) => walk_expr(&fr.iter, f),
+        Stmt::AsyncFor(fr) => walk_expr(&fr.iter, f),
+        Stmt::With(w) => visit_with_items(&w.items, f),
+        Stmt::AsyncWith(w) => visit_with_items(&w.items, f),
+        Stmt::Try(t) => visit_try_handler_type_exprs(&t.handlers, f),
+        Stmt::TryStar(t) => visit_try_handler_type_exprs(&t.handlers, f),
+        Stmt::Match(m) => {
+            walk_expr(&m.subject, f);
+            for case in &m.cases {
+                walk_pattern(&case.pattern, f);
+                if let Some(g) = &case.guard {
+                    walk_expr(g, f);
                 }
             }
-            Stmt::Assign(a) => {
-                for t in &a.targets {
-                    walk_expr(t, f);
-                }
-                walk_expr(&a.value, f);
+        }
+        Stmt::Assign(a) => {
+            a.targets.iter().for_each(|t| walk_expr(t, f));
+            walk_expr(&a.value, f);
+        }
+        Stmt::AnnAssign(a) => {
+            walk_expr(&a.target, f);
+            walk_expr(&a.annotation, f);
+            if let Some(v) = &a.value {
+                walk_expr(v, f);
             }
-            Stmt::AnnAssign(a) => {
-                walk_expr(&a.target, f);
-                walk_expr(&a.annotation, f);
-                if let Some(v) = &a.value {
-                    walk_expr(v, f);
-                }
+        }
+        Stmt::AugAssign(a) => {
+            walk_expr(&a.target, f);
+            walk_expr(&a.value, f);
+        }
+        Stmt::Return(r) => {
+            if let Some(v) = &r.value {
+                walk_expr(v, f);
             }
-            Stmt::AugAssign(a) => {
-                walk_expr(&a.target, f);
-                walk_expr(&a.value, f);
+        }
+        Stmt::Expr(e) => walk_expr(&e.value, f),
+        Stmt::Raise(r) => {
+            if let Some(e) = &r.exc {
+                walk_expr(e, f);
             }
-            Stmt::Return(r) => {
-                if let Some(v) = &r.value {
-                    walk_expr(v, f);
-                }
+            if let Some(c) = &r.cause {
+                walk_expr(c, f);
             }
-            Stmt::Expr(e) => walk_expr(&e.value, f),
-            Stmt::Raise(r) => {
-                if let Some(e) = &r.exc {
-                    walk_expr(e, f);
-                }
-                if let Some(c) = &r.cause {
-                    walk_expr(c, f);
-                }
+        }
+        Stmt::Assert(a) => {
+            walk_expr(&a.test, f);
+            if let Some(m) = &a.msg {
+                walk_expr(m, f);
             }
-            Stmt::Assert(a) => {
-                walk_expr(&a.test, f);
-                if let Some(m) = &a.msg {
-                    walk_expr(m, f);
-                }
-            }
-            _ => {}
+        }
+        Stmt::Delete(d) => d.targets.iter().for_each(|t| walk_expr(t, f)),
+        // Other stmt kinds (pass, break, import, type alias when present) carry no inline exprs.
+        _ => {}
+    }
+}
+
+fn visit_with_items(items: &[rustpython_ast::WithItem], f: &mut impl FnMut(&Expr)) {
+    for item in items {
+        walk_expr(&item.context_expr, f);
+        if let Some(v) = &item.optional_vars {
+            walk_expr(v, f);
         }
     }
 }
 
-fn walk_exprs_try(
-    body: &[Stmt],
-    handlers: &[ExceptHandler],
-    orelse: &[Stmt],
-    finalbody: &[Stmt],
-    f: &mut impl FnMut(&Expr),
-) {
-    walk_exprs(body, f);
+fn visit_try_handler_type_exprs(handlers: &[ExceptHandler], f: &mut impl FnMut(&Expr)) {
     for h in handlers {
         let ExceptHandler::ExceptHandler(h) = h;
         if let Some(ty) = &h.type_ {
             walk_expr(ty, f);
         }
-        walk_exprs(&h.body, f);
     }
-    walk_exprs(orelse, f);
-    walk_exprs(finalbody, f);
 }
 
 fn walk_pattern(p: &Pattern, f: &mut impl FnMut(&Expr)) {
@@ -431,6 +398,8 @@ fn walk_comprehension(
     }
 }
 
+/// Line span of executable statements in a function body (excludes nested def/class headers).
+/// Does not count the `def`/`async def` header line — only body statements (B9).
 fn stmt_line_span(parsed: &ParsedFile, body: &[Stmt]) -> usize {
     let mut min_line = usize::MAX;
     let mut max_line = 0usize;
@@ -613,5 +582,20 @@ def outer():
         let inner = metrics.iter().find(|m| m.name == "inner").unwrap();
         assert_eq!(outer.max_conditional_depth, 3);
         assert_eq!(inner.max_conditional_depth, 4);
+    }
+
+    #[test]
+    fn walk_exprs_finds_print_inside_nested_function() {
+        let source = "def outer():\n    def inner():\n        print('x')\n";
+        let parsed = RustPythonParser
+            .parse_file(source, Path::new("t.py"))
+            .unwrap();
+        let mut hits = 0;
+        walk_exprs_in_module(&parsed, &mut |expr| {
+            if is_print_call(expr) {
+                hits += 1;
+            }
+        });
+        assert_eq!(hits, 1);
     }
 }

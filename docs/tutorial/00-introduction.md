@@ -29,7 +29,7 @@ CLI → Config + Discovery → DeterministicAnalyzer
 - `src/checks/` — ZR001–ZR010 by category
 - `src/analyzers/deterministic.rs` — runs enabled checks per file
 - `src/reporters/` — human, JSON, Markdown, SARIF
-- `tests/fixtures/` — `simple_project`, `bad_project`
+- `tests/fixtures/` — `simple_project`, `bad_project`, `arch_violation` (ZR010)
 
 ## Running Zerum
 

@@ -1,0 +1,210 @@
+---
+source: tests/snapshot_tests.rs
+expression: out
+---
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "zerum",
+          "rules": [
+            {
+              "id": "ZR002",
+              "name": "too-many-arguments",
+              "short_description": {
+                "text": "too-many-arguments"
+              }
+            },
+            {
+              "id": "ZR006",
+              "name": "print-debugging",
+              "short_description": {
+                "text": "print-debugging"
+              }
+            },
+            {
+              "id": "ZR005",
+              "name": "broad-except",
+              "short_description": {
+                "text": "broad-except"
+              }
+            },
+            {
+              "id": "ZR001",
+              "name": "too-many-branches",
+              "short_description": {
+                "text": "too-many-branches"
+              }
+            },
+            {
+              "id": "ZR004",
+              "name": "nested-conditionals",
+              "short_description": {
+                "text": "nested-conditionals"
+              }
+            },
+            {
+              "id": "ZR007",
+              "name": "mutable-default-argument",
+              "short_description": {
+                "text": "mutable-default-argument"
+              }
+            },
+            {
+              "id": "ZR009",
+              "name": "ai-generated-placeholder-comment",
+              "short_description": {
+                "text": "ai-generated-placeholder-comment"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "rule_id": "ZR002",
+          "level": "note",
+          "message": {
+            "text": "function `too_many_args` has 7 arguments (max 5)"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 1,
+                  "start_column": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR006",
+          "level": "note",
+          "message": {
+            "text": "print() used for debugging"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 2,
+                  "start_column": 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR005",
+          "level": "error",
+          "message": {
+            "text": "broad or bare except handler swallows errors"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 5,
+                  "start_column": 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR001",
+          "level": "warning",
+          "message": {
+            "text": "function `branchy` has 13 branches (max 8)"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 8,
+                  "start_column": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR004",
+          "level": "warning",
+          "message": {
+            "text": "function `branchy` has conditional nesting depth 9 (max 3)"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 8,
+                  "start_column": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR007",
+          "level": "error",
+          "message": {
+            "text": "function `bad_default` uses a mutable default argument"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 33,
+                  "start_column": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR009",
+          "level": "warning",
+          "message": {
+            "text": "suspicious AI-related placeholder: `TODO: AI`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 36,
+                  "start_column": 3
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

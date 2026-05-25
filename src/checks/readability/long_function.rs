@@ -23,7 +23,8 @@ impl Check for LongFunction {
     }
 
     fn explanation(&self) -> &'static str {
-        "Long functions mix multiple responsibilities and are harder to test and review."
+        "Long functions mix multiple responsibilities and are harder to test and review. \
+         Line count covers the function body only (not the `def` header)."
     }
 
     fn remediation(&self) -> &'static str {

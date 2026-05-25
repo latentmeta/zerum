@@ -112,4 +112,30 @@ def branchy(x):
         assert!(!issues.is_empty());
         assert!(issues.iter().all(|i| i.id == "ZR001"));
     }
+
+    #[test]
+    fn async_function_branches_counted() {
+        let source = r#"
+async def branchy(x):
+    if x:
+        pass
+    elif x > 1:
+        pass
+    elif x > 2:
+        pass
+    elif x > 3:
+        pass
+    elif x > 4:
+        pass
+    elif x > 5:
+        pass
+    elif x > 6:
+        pass
+    elif x > 7:
+        pass
+    elif x > 8:
+        pass
+"#;
+        assert!(!run_check(source).is_empty());
+    }
 }

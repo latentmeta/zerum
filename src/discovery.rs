@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use walkdir::DirEntry;
 use walkdir::WalkDir;
@@ -36,8 +36,8 @@ pub fn discover_python_files(root: &Path) -> Result<Vec<PathBuf>> {
         .follow_links(false)
         .into_iter()
         .filter_entry(|e| !skip_entry(e))
-        .filter_map(Result::ok)
     {
+        let entry = entry.with_context(|| format!("walk directory {}", root.display()))?;
         if entry.file_type().is_dir() {
             continue;
         }
@@ -73,5 +73,12 @@ mod tests {
         let files = discover_python_files(root).unwrap();
         assert_eq!(files.len(), 1);
         assert!(files[0].ends_with("real.py"));
+    }
+
+    #[test]
+    fn errors_when_root_is_missing() {
+        let missing = Path::new("/nonexistent/zerum/discovery/root");
+        let err = discover_python_files(missing).unwrap_err();
+        assert!(err.to_string().contains("walk directory"));
     }
 }

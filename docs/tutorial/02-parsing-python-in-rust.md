@@ -37,4 +37,5 @@ Byte offsets from `Ranged::start()` are converted via `line_col(source, offset)`
 
 - Python only in Phase 1
 - No type information; rules are syntactic
-- Async variants (`AsyncFunctionDef`, etc.) are handled explicitly
+- Async variants (`AsyncFunctionDef`, etc.) are handled explicitly in metrics and walks
+- Discovery surfaces walk errors (missing roots, permission failures) instead of silently skipping them

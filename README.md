@@ -71,7 +71,9 @@ Educational material lives under [`docs/tutorial/`](docs/tutorial/):
 
 ```bash
 cargo test
-cargo run -- check tests/fixtures/bad_project   # exits 1
+cargo run -- check tests/fixtures/bad_project        # exits 1
+cargo run -- check tests/fixtures/arch_violation     # ZR010, exits 1
+cargo run -- check tests/fixtures/simple_project     # exits 0
 ```
 
 ## License

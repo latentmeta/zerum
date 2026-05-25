@@ -27,7 +27,8 @@ impl Check for PrintDebugging {
     }
 
     fn remediation(&self) -> &'static str {
-        "Use structured logging (logging module) or remove the statement before merging."
+        "Use structured logging (logging module) or remove the statement before merging. \
+         Phase 1 only flags bare `print()` calls, not `builtins.print` or import aliases."
     }
 
     fn run(&self, ctx: &CheckContext) -> Vec<Issue> {
@@ -49,5 +50,43 @@ impl Check for PrintDebugging {
             }
         });
         issues
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use crate::parser::{PythonParser, RustPythonParser};
+    use std::path::Path;
+
+    #[test]
+    fn flags_print_call() {
+        let source = "def f():\n    print('debug')\n";
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        assert_eq!(PrintDebugging.run(&ctx).len(), 1);
+    }
+
+    #[test]
+    fn ignores_builtins_print_attribute() {
+        let source = "def f():\n    builtins.print('debug')\n";
+        let path = Path::new("t.py");
+        let parsed = RustPythonParser.parse_file(source, path).unwrap();
+        let config = Config::default();
+        let ctx = CheckContext {
+            path,
+            source,
+            parsed: &parsed,
+            config: &config,
+        };
+        assert!(PrintDebugging.run(&ctx).is_empty());
     }
 }

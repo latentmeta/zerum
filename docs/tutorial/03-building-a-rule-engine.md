@@ -37,8 +37,8 @@ Adding a check:
 
 | Choice | Rationale |
 |--------|-----------|
-| `Arc<dyn Check>` | Simple v0.1.0; few checks, no dynamic plugins yet |
-| Shared `ast_util` | `walk_stmts` is the single statement descent; specialized walks reuse it |
+| `Box<dyn Check>` | Simple v0.1.0; checks are stateless, no dynamic plugins yet |
+| Shared `ast_util` | `walk_stmts` descends statements; `walk_exprs_in_module` reuses it via `visit_stmt_exprs` |
 | Stable issue ids | `zerum explain ZR001` and SARIF `ruleId` stay aligned |
 
 ## Alternatives considered
