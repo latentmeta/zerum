@@ -1,5 +1,7 @@
 # Zerum
 
+**Repository:** [github.com/latentmeta/zerum](https://github.com/latentmeta/zerum)
+
 **Zerum** is a Rust-native, deterministic-first code governance platform for Python.
 
 It combines:
@@ -10,15 +12,31 @@ It combines:
 
 Zerum is **not** a Ruff clone. It focuses on explainable governance, maintainability, and architectural boundaries.
 
+## Install
+
+```bash
+cargo install zerum
+```
+
+Requires a [Rust toolchain](https://rustup.rs/) (see `rust-version` in `Cargo.toml`).
+
 ## Quick start
 
 ```bash
+zerum list-checks
+zerum check path/to/python/project
+zerum review path/to/python/project   # same analysis, exits 0 when issues exist
+zerum explain ZR001
+zerum init
+```
+
+From a git checkout:
+
+```bash
+git clone https://github.com/latentmeta/zerum.git
+cd zerum
 cargo build
-cargo run -- list-checks
 cargo run -- check path/to/python/project
-cargo run -- review path/to/python/project   # same analysis, exits 0 when issues exist
-cargo run -- explain ZR001
-cargo run -- init
 ```
 
 `zerum init` writes `zerum.toml` from `zerum.toml.example`. You can also copy the example file manually.

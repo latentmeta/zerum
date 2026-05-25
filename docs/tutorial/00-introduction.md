@@ -1,5 +1,7 @@
 # Zerum Tutorial — Introduction
 
+Source repository: [github.com/latentmeta/zerum](https://github.com/latentmeta/zerum)
+
 Zerum is a **deterministic-first** code governance tool for Python. Phase 1 establishes the Rust project skeleton, core issue model, parser abstraction, rule engine, ten native checks (ZR001–ZR010), CLI, and reporters.
 
 ## What Phase 1 delivers

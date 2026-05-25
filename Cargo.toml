@@ -2,9 +2,16 @@
 name = "zerum"
 version = "0.1.0"
 edition = "2021"
-description = "Deterministic code governance with external checker orchestration and auditable LLM review"
+rust-version = "1.70"
+description = "Deterministic-first Python code governance: native checks (ZR001–ZR010), CLI, and SARIF/JSON reporters"
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/latentmeta/zerum"
+homepage = "https://github.com/latentmeta/zerum"
+documentation = "https://docs.rs/zerum"
+keywords = ["python", "lint", "static-analysis", "governance", "sarif"]
+categories = ["development-tools", "command-line-utilities"]
+authors = ["thanos vassilakis"]
 
 [lib]
 name = "zerum"
@@ -21,7 +28,6 @@ rustpython-ast = "0.4"
 rustpython-parser = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-thiserror = "2"
 toml = "0.8"
 walkdir = "2"
 
