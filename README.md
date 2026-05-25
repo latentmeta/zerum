@@ -76,6 +76,10 @@ cargo run -- check tests/fixtures/arch_violation     # ZR010, exits 1
 cargo run -- check tests/fixtures/simple_project     # exits 0
 ```
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history. Full v0.1.0 notes: [docs/RELEASE_v0.1.0.md](docs/RELEASE_v0.1.0.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
