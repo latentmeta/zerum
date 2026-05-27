@@ -18,8 +18,6 @@ pub enum ReportFormat {
     #[default]
     Human,
     Json,
-    Markdown,
-    Sarif,
 }
 
 impl From<ReportFormat> for ReportKind {
@@ -27,8 +25,6 @@ impl From<ReportFormat> for ReportKind {
         match format {
             ReportFormat::Human => ReportKind::Human,
             ReportFormat::Json => ReportKind::Json,
-            ReportFormat::Markdown => ReportKind::Markdown,
-            ReportFormat::Sarif => ReportKind::Sarif,
         }
     }
 }
@@ -45,16 +41,6 @@ enum Commands {
     /// Run deterministic checks on a path (exits 1 when issues are found)
     Check {
         path: PathBuf,
-        #[arg(long)]
-        deterministic_only: bool,
-        #[arg(long)]
-        with_llm: bool,
-        #[arg(long, value_enum, default_value_t = ReportFormat::Human)]
-        format: ReportFormat,
-    },
-    /// Run checks and print results without failing on findings (exits 0 unless operational error)
-    Review {
-        path: PathBuf,
         #[arg(long, value_enum, default_value_t = ReportFormat::Human)]
         format: ReportFormat,
     },
@@ -66,8 +52,6 @@ enum Commands {
     Init,
     /// List built-in deterministic checks
     ListChecks,
-    /// List external checkers (orchestration phase)
-    ListCheckers,
 }
 
 impl Cli {
@@ -75,30 +59,16 @@ impl Cli {
         match self.command {
             Commands::Check {
                 path,
-                deterministic_only: _,
-                with_llm,
                 format,
-            } => {
-                if with_llm {
-                    eprintln!("note: LLM review is not enabled in v0.1.0; running deterministic checks only");
-                }
-                run_check(&path, format, FailOnIssues::Yes)
-            }
-            Commands::Review { path, format } => run_check(&path, format, FailOnIssues::No),
+            } => run_check(&path, format),
             Commands::Explain { id } => run_explain(&id),
             Commands::Init => run_init(),
             Commands::ListChecks => run_list_checks(),
-            Commands::ListCheckers => run_list_checkers(),
         }
     }
 }
 
-enum FailOnIssues {
-    Yes,
-    No,
-}
-
-fn run_check(path: &Path, format: ReportFormat, fail_on_issues: FailOnIssues) -> Result<ExitCode> {
+fn run_check(path: &Path, format: ReportFormat) -> Result<ExitCode> {
     let config = Config::discover(path)?;
     let files = discover_python_files(path)?;
     if files.is_empty() {
@@ -114,10 +84,7 @@ fn run_check(path: &Path, format: ReportFormat, fail_on_issues: FailOnIssues) ->
     if result.issues.is_empty() {
         return Ok(ExitCode::SUCCESS);
     }
-    match fail_on_issues {
-        FailOnIssues::Yes => Ok(ExitCode::from(EXIT_ISSUES)),
-        FailOnIssues::No => Ok(ExitCode::SUCCESS),
-    }
+    Ok(ExitCode::from(EXIT_ISSUES))
 }
 
 fn run_explain(id: &str) -> Result<ExitCode> {
@@ -130,6 +97,10 @@ fn run_explain(id: &str) -> Result<ExitCode> {
     println!("severity: {}", check.severity());
     println!();
     println!("{}", check.explanation());
+    println!();
+    println!("False positives: {}", check.false_positives());
+    println!("Tradeoffs: {}", check.tradeoffs());
+    println!("Examples: {}", check.metadata().examples);
     println!();
     println!("Remediation: {}", check.remediation());
     Ok(ExitCode::SUCCESS)
@@ -159,7 +130,3 @@ fn run_list_checks() -> Result<ExitCode> {
     Ok(ExitCode::SUCCESS)
 }
 
-fn run_list_checkers() -> Result<ExitCode> {
-    println!("External checkers (planned): ruff, pylint, mypy, bandit, eslint, credo, sobelow, clippy");
-    Ok(ExitCode::SUCCESS)
-}

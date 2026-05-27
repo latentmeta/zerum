@@ -1,10 +1,12 @@
 mod python;
+mod source_model;
 
 use anyhow::Result;
 use rustpython_ast::Mod;
 use std::path::{Path, PathBuf};
 
 pub use python::RustPythonParser;
+pub use source_model::{ClassView, CommentView, FunctionView, ImportView, SourceModel};
 
 pub trait PythonParser: Send + Sync {
     fn parse_file(&self, source: &str, path: &Path) -> Result<ParsedFile>;
@@ -15,6 +17,12 @@ pub struct ParsedFile {
     pub path: PathBuf,
     pub source: String,
     pub module: Mod,
+}
+
+impl ParsedFile {
+    pub fn source_model(&self) -> SourceModel<'_> {
+        SourceModel::from_parsed(self)
+    }
 }
 
 /// Map a byte offset to 1-based line and column.

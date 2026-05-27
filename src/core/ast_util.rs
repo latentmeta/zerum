@@ -121,6 +121,10 @@ pub fn walk_stmts_for_try(parsed: &ParsedFile, f: &mut impl FnMut(&ExceptHandler
     });
 }
 
+pub fn walk_stmts_in_module(parsed: &ParsedFile, f: &mut impl FnMut(&Stmt)) {
+    walk_stmts(parsed, module_body(&parsed.module), f);
+}
+
 /// Detects bare `print(...)` calls. Does not match `builtins.print` or renamed imports (Phase 1 scope).
 pub fn is_print_call(expr: &Expr) -> bool {
     matches!(

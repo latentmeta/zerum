@@ -27,8 +27,7 @@ fn json_reporter_emits_issue_id() {
 }
 
 #[test]
-fn sarif_reporter_emits_version() {
-    let out = render(ReportKind::Sarif, &[sample_issue()]).unwrap();
-    assert!(out.contains("\"version\": \"2.1.0\""));
+fn human_reporter_emits_issue_id() {
+    let out = render(ReportKind::Human, &[sample_issue()]).unwrap();
     assert!(out.contains("ZR001"));
 }

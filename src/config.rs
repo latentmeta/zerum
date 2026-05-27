@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use crate::core::Severity;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -38,6 +39,8 @@ pub struct CheckConfig {
     pub max_methods: Option<usize>,
     #[serde(default)]
     pub rules: Vec<ForbiddenImportRule>,
+    #[serde(default)]
+    pub severity: Option<Severity>,
 }
 
 fn default_enabled() -> bool {
@@ -54,6 +57,7 @@ impl Default for CheckConfig {
             max_depth: None,
             max_methods: None,
             rules: Vec::new(),
+            severity: None,
         }
     }
 }

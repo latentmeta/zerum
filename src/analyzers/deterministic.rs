@@ -55,7 +55,14 @@ impl DeterministicAnalyzer {
         let mut issues = Vec::new();
         for check in self.registry.iter() {
             if config.is_check_enabled(check.id()) {
-                issues.extend(check.run(&ctx));
+                let severity_override = config.check_config(check.id()).severity;
+                let mut check_issues = check.run(&ctx);
+                if let Some(severity) = severity_override {
+                    for issue in &mut check_issues {
+                        issue.severity = severity;
+                    }
+                }
+                issues.extend(check_issues);
             }
         }
         issues.sort_by(|a, b| {
