@@ -125,6 +125,13 @@ pub fn walk_stmts_in_module(parsed: &ParsedFile, f: &mut impl FnMut(&Stmt)) {
     walk_stmts(parsed, module_body(&parsed.module), f);
 }
 
+/// Visits only top-level module statements (does not descend into functions/classes).
+pub fn walk_module_level_stmts(parsed: &ParsedFile, f: &mut impl FnMut(&Stmt)) {
+    for stmt in module_body(&parsed.module) {
+        f(stmt);
+    }
+}
+
 /// Detects bare `print(...)` calls. Does not match `builtins.print` or renamed imports (Phase 1 scope).
 pub fn is_print_call(expr: &Expr) -> bool {
     matches!(
@@ -142,7 +149,7 @@ pub fn is_broad_except_handler(handler: &ExceptHandler) -> bool {
         )
 }
 
-fn is_mutable_expr(expr: &Expr) -> bool {
+pub fn is_mutable_expr(expr: &Expr) -> bool {
     matches!(
         expr,
         Expr::List(_) | Expr::Dict(_) | Expr::Set(_) | Expr::ListComp(_) | Expr::DictComp(_) | Expr::SetComp(_)

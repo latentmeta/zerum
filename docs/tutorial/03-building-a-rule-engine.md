@@ -20,14 +20,14 @@ pub trait Check: Send + Sync {
 
 ## Registry
 
-`CheckRegistry::new()` registers all Phase 1 checks. `DeterministicAnalyzer` iterates the registry and respects `config.is_check_enabled(id)`.
+`CheckRegistry::new()` calls `build_catalog()` (~75 rules in v0.2.0). `DeterministicAnalyzer` iterates the registry and respects `config.is_check_enabled(id)`.
 
 Adding a check:
 
-1. Implement `Check` in `src/checks/...`
-2. Register in `src/core/registry.rs`
+1. Add a `Detector` variant in `src/checks/catalog.rs` or `catalog_detectors.rs`
+2. Register with `rule(...)` in `build_catalog()`
 3. Add unit tests and fixture coverage
-4. Add a tutorial section when the check is non-trivial
+4. See [04 — Writing checks](04-writing-checks.md) for AST vs heuristic guidance
 
 ## Configuration hook
 
@@ -37,9 +37,10 @@ Adding a check:
 
 | Choice | Rationale |
 |--------|-----------|
-| `Box<dyn Check>` | Simple v0.1.0; checks are stateless, no dynamic plugins yet |
-| Shared `ast_util` | `walk_stmts` descends statements; `walk_exprs_in_module` reuses it via `visit_stmt_exprs` |
-| Stable issue ids | `zerum explain ZR001` and SARIF `ruleId` stay aligned |
+| `Box<dyn Check>` | Stateless catalog entries; no dynamic plugins in v0.2.0 |
+| `SourceModel` | Semantic metrics and comments without duplicating parse walks |
+| Shared `ast_util` | `walk_stmts` descends statements; `walk_exprs_in_module` reuses it |
+| Stable issue ids | `zerum explain ZR001` stays aligned with JSON `id` field |
 
 ## Alternatives considered
 
@@ -48,4 +49,5 @@ Adding a check:
 
 ## Related chapters
 
-Chapter 04 (writing checks) and chapter 05 (configuration) are planned for Phase 2.
+- [04 — Writing checks](04-writing-checks.md)
+- [05 — Explain mode and configuration](05-explain-mode-and-configuration.md)
