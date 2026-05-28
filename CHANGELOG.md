@@ -7,11 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned (post–v0.2.0)
+### Planned
 
-- `ExternalChecker` trait and Ruff JSON adapter
-- `zerum.toml` schema validation and profile inheritance
-- Per-rule curated explain text and additional AST-precise detectors
+- Opt-in LLM layer (`--with-llm`)
+- Autofix pipeline
+
+## [0.4.0] - 2026-05-28
+
+Post–v0.2.0 hardening: default profile, AST detectors, config profiles, external Ruff orchestration.
+
+### Added
+
+- **Default profile:** noisy pattern heuristics disabled when no `zerum.toml` (see `src/config/defaults.rs`)
+- **Strict profile:** `zerum check --profile strict` and `zerum init --strict`
+- **Profile inheritance:** `[profiles.*]` with `extends` in `zerum.toml`
+- **Config validation:** invalid check ids and severity values fail at load
+- **AST detectors:** ZR101 inconsistent function naming, ZR306 repeated literal, ZR506 empty wrapper
+- **Curated explain text** for tier-1 rules (ZR001, ZR003, ZR005, ZR010, ZR207, ZR401–404, ZR406–407, ZR414, ZR501, ZR504)
+- **`ExternalChecker` trait** and Ruff JSON adapter (`--with-external ruff`, `external_checkers` config)
+- **`list-checkers`** CLI command
+- **`sarif` feature flag** for optional SARIF output (`cargo build --features sarif`)
+- **Tests:** `catalog_rule_matrix`, `clean_project` fixture, `list-checkers` CLI test
+- **Docs:** [tutorial 06](docs/tutorial/06-config-profiles.md), [DISTRO_CLOSURE.md](docs/DISTRO_CLOSURE.md)
+
+### Changed
+
+- Removed unwired legacy check modules under `src/checks/{readability,design,...}/`
+- CI coverage job fails below **70%** line coverage
+- `zerum.toml.example` documents default vs strict and external checkers
 
 ## [0.2.0] - 2026-05-27
 

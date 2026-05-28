@@ -1,11 +1,19 @@
-# Zerum v0.2.0 example configuration
+# Zerum example configuration (default profile)
 # Copy to zerum.toml and adjust for your project.
 # Run: zerum init
+# Strict profile: zerum init --strict  or  zerum check . --profile strict
 
 [profile]
 name = "default"
 
+# Custom profile inheritance (v0.3.0+)
+# [profiles.team]
+# extends = "default"
+# [profiles.team.checks.ZR001]
+# max_lines = 60
+
 # --- Readability (ZR001–ZR015) ---
+# ZR007/ZR008 (docstrings) and ZR011–015 (comment patterns) are off in default profile.
 
 [checks.ZR001]
 enabled = true
@@ -19,29 +27,17 @@ max_arguments = 5
 enabled = true
 max_depth = 3
 
-[checks.ZR004]
-enabled = true
-
 [checks.ZR005]
 enabled = true
 
 [checks.ZR006]
 enabled = true
 
-[checks.ZR007]
-enabled = true
-
-[checks.ZR008]
-enabled = true
-
-[checks.ZR009]
-enabled = true
-
 [checks.ZR010]
 enabled = true
 
 # --- Consistency (ZR101–ZR110) ---
-# Heuristic naming/style rules; disable noisy ids as needed.
+# Pattern heuristics ZR102–104, ZR107–110 disabled by default; ZR101/105/106 are AST-precise.
 
 [checks.ZR105]
 enabled = true
@@ -65,20 +61,7 @@ enabled = true
 from = "app.domain"
 forbidden = "app.infrastructure"
 
-[[checks.ZR207.rules]]
-from = "app.domain"
-forbidden = "app.api"
-
 # --- Refactor (ZR301–ZR315) ---
-
-[checks.ZR301]
-enabled = true
-
-[checks.ZR302]
-enabled = true
-
-[checks.ZR303]
-enabled = true
 
 [checks.ZR304]
 enabled = true
@@ -86,15 +69,6 @@ enabled = true
 [checks.ZR307]
 enabled = true
 max_arguments = 7
-
-[checks.ZR310]
-enabled = true
-
-[checks.ZR314]
-enabled = true
-
-[checks.ZR315]
-enabled = true
 
 # --- Warning (ZR401–ZR415) ---
 
@@ -105,13 +79,7 @@ severity = "high"
 [checks.ZR402]
 enabled = true
 
-[checks.ZR403]
-enabled = true
-
 [checks.ZR404]
-enabled = true
-
-[checks.ZR405]
 enabled = true
 
 [checks.ZR406]
@@ -120,35 +88,18 @@ enabled = true
 [checks.ZR407]
 enabled = true
 
-[checks.ZR408]
-enabled = true
-
-[checks.ZR409]
-enabled = true
-
-[checks.ZR411]
-enabled = true
-
-[checks.ZR412]
-enabled = true
-
 [checks.ZR414]
 enabled = true
 
-[checks.ZR415]
-enabled = true
-
 # --- AI slop (ZR501–ZR510), deterministic only ---
+# ZR503, ZR505–506, ZR509–510 disabled by default (pattern-heavy).
 
 [checks.ZR501]
 enabled = true
 
-[checks.ZR502]
+[checks.ZR504]
 enabled = true
 
-[checks.ZR507]
-enabled = true
-
-# Disable a rule entirely:
-# [checks.ZR110]
-# enabled = false
+# --- External checkers (v0.4.0) ---
+# Requires `ruff` on PATH: zerum check . --with-external ruff
+# external_checkers = ["ruff"]

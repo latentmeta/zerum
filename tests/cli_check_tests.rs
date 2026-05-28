@@ -40,16 +40,26 @@ fn check_arch_violation_flags_zr207() {
         .expect("run zerum check arch_violation");
     assert_eq!(output.status.code(), Some(1));
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("ZR"));
+    assert!(stdout.contains("ZR207"));
 }
 
 #[test]
-fn check_simple_project_passes() {
+fn check_simple_project_clean_under_default_profile() {
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/simple_project");
     let output = Command::new(zerum_bin())
         .args(["check", path])
         .output()
         .expect("run zerum check");
+    assert_eq!(output.status.code(), Some(0));
+}
+
+#[test]
+fn check_simple_project_finds_issues_under_strict_profile() {
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/simple_project");
+    let output = Command::new(zerum_bin())
+        .args(["check", path, "--profile", "strict"])
+        .output()
+        .expect("run zerum check strict");
     assert_eq!(output.status.code(), Some(1));
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("ZR"));

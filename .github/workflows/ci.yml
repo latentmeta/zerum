@@ -52,7 +52,7 @@ jobs:
         uses: taiki-e/install-action@cargo-tarpaulin
 
       - name: Run coverage
-        run: cargo tarpaulin --out Xml --output-dir coverage -- --test-threads=1
+        run: cargo tarpaulin --out Xml --output-dir coverage --fail-under 70 -- --test-threads=1
 
       - name: Upload coverage report artifact
         uses: actions/upload-artifact@v4
@@ -81,3 +81,6 @@ jobs:
 
       - name: Run precision regression tests
         run: cargo test --test rule_precision_tests
+
+      - name: Run catalog rule matrix tests
+        run: cargo test --test catalog_rule_matrix

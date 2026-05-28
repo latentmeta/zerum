@@ -1,0 +1,24 @@
+# Zerum strict profile — all catalog rules enabled
+# Copy to zerum.toml for maximum coverage (expect more findings on small modules).
+
+[profile]
+name = "strict"
+
+# Enable heuristic rules disabled in the default profile
+[checks.ZR007]
+enabled = true
+[checks.ZR008]
+enabled = true
+[checks.ZR011]
+enabled = true
+[checks.ZR110]
+enabled = true
+[checks.ZR203]
+enabled = true
+[checks.ZR506]
+enabled = true
+
+[checks.ZR001]
+max_lines = 50
+[checks.ZR401]
+severity = "high"

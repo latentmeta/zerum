@@ -579,12 +579,46 @@ fn numeric_constant_text(c: &Constant) -> Option<String> {
     }
 }
 
+struct RuleDocs {
+    explanation: &'static str,
+    remediation: &'static str,
+    false_positives: &'static str,
+    tradeoffs: &'static str,
+    examples: &'static str,
+}
+
+const GENERIC_DOCS: RuleDocs = RuleDocs {
+    explanation: "This finding highlights maintainability risk in deterministic analysis.",
+    remediation: "Refactor for clarity and consistency with project conventions.",
+    false_positives: "Heuristic rule: validate in project context before enforcing strictly.",
+    tradeoffs: "Stricter thresholds can improve consistency but may increase review churn.",
+    examples: "See `zerum explain <ID>` for examples.",
+};
+
 fn rule(
     id: &'static str,
     name: &'static str,
     category: Category,
     severity: Severity,
     detector: Detector,
+) -> Box<dyn Check> {
+    rule_with_docs(
+        id,
+        name,
+        category,
+        severity,
+        detector,
+        docs_for(id).unwrap_or(GENERIC_DOCS),
+    )
+}
+
+fn rule_with_docs(
+    id: &'static str,
+    name: &'static str,
+    category: Category,
+    severity: Severity,
+    detector: Detector,
+    docs: RuleDocs,
 ) -> Box<dyn Check> {
     Box::new(CatalogCheck {
         metadata: CheckMetadata {
@@ -593,13 +627,117 @@ fn rule(
             category,
             severity,
             safe_fixable: false,
-            examples: "See `zerum explain <ID>` for examples.",
+            examples: docs.examples,
         },
-        explanation: "This finding highlights maintainability risk in deterministic analysis.",
-        remediation: "Refactor for clarity and consistency with project conventions.",
-        false_positives: "Heuristic rule: validate in project context before enforcing strictly.",
-        tradeoffs: "Stricter thresholds can improve consistency but may increase review churn.",
+        explanation: docs.explanation,
+        remediation: docs.remediation,
+        false_positives: docs.false_positives,
+        tradeoffs: docs.tradeoffs,
         detector,
+    })
+}
+
+fn docs_for(id: &str) -> Option<RuleDocs> {
+    Some(match id {
+        "ZR001" => RuleDocs {
+            explanation: "Long functions are harder to test, review, and reuse.",
+            remediation: "Extract helpers or split responsibilities into smaller functions.",
+            false_positives: "Generated code, DSL builders, or single-purpose scripts.",
+            tradeoffs: "Lower thresholds catch sprawl early but may conflict with local cohesion.",
+            examples: "A 120-line handler doing validation, IO, and formatting in one block.",
+        },
+        "ZR003" => RuleDocs {
+            explanation: "Deep nesting obscures control flow and error handling paths.",
+            remediation: "Use guard clauses, early returns, or extract nested blocks into functions.",
+            false_positives: "State machines or parser combinator style code with intentional depth.",
+            tradeoffs: "Flattening can scatter related logic if over-applied.",
+            examples: "Four levels of if/for inside one function.",
+        },
+        "ZR005" => RuleDocs {
+            explanation: "Very short names reduce readability for maintainers.",
+            remediation: "Rename to descriptive snake_case identifiers.",
+            false_positives: "Loop indices, math conventions (x, y), or well-known abbreviations in scope.",
+            tradeoffs: "Verbose names help newcomers but can clutter tight algorithms.",
+            examples: "`def f(a, b):` where names do not convey intent.",
+        },
+        "ZR010" => RuleDocs {
+            explanation: "TODOs without owner or context tend to linger indefinitely.",
+            remediation: "Add owner, ticket id, or concrete next step; remove stale TODOs.",
+            false_positives: "Template files or internal scratch scripts.",
+            tradeoffs: "Strict TODO hygiene improves tracking but adds friction for spikes.",
+            examples: "`# TODO fix this` with no ticket or owner.",
+        },
+        "ZR207" => RuleDocs {
+            explanation: "Layer violations let infrastructure concerns leak into domain code.",
+            remediation: "Move imports behind interfaces or invert dependencies per your architecture rules.",
+            false_positives: "Monorepos with unconventional folder layouts; adjust `[[checks.ZR207.rules]]`.",
+            tradeoffs: "Strict layering improves testability but requires upfront boundary design.",
+            examples: "Domain module importing `app.infrastructure.db`.",
+        },
+        "ZR401" => RuleDocs {
+            explanation: "Broad except handlers hide bugs and make failures hard to diagnose.",
+            remediation: "Catch specific exception types and re-raise or wrap with context.",
+            false_positives: "Top-level CLI entrypoints that must report any failure.",
+            tradeoffs: "Narrow exceptions improve signal but need maintenance when APIs change.",
+            examples: "`except Exception:` around business logic.",
+        },
+        "ZR402" => RuleDocs {
+            explanation: "Empty except blocks swallow errors silently.",
+            remediation: "Log, handle, or re-raise; remove no-op handlers.",
+            false_positives: "Intentional suppression with documented rationale in comments.",
+            tradeoffs: "Explicit handling adds noise if every rare edge case is logged.",
+            examples: "`except ValueError: pass`",
+        },
+        "ZR403" => RuleDocs {
+            explanation: "Bare except catches system exits and keyboard interrupts.",
+            remediation: "Specify `except Exception` at minimum, preferably concrete types.",
+            false_positives: "Legacy compatibility shims (still discouraged).",
+            tradeoffs: "Bare except is convenient for quick scripts but unsafe in libraries.",
+            examples: "`except:` with no exception type.",
+        },
+        "ZR404" => RuleDocs {
+            explanation: "Mutable defaults are shared across calls and cause subtle bugs.",
+            remediation: "Use `None` as default and assign a new list/dict inside the function.",
+            false_positives: "Immutable defaults (None, int, str, tuple) are fine.",
+            tradeoffs: "The None-sentinel pattern is idiomatic but slightly more verbose.",
+            examples: "`def f(items=[]):`",
+        },
+        "ZR406" => RuleDocs {
+            explanation: "Assert statements are stripped when Python runs with `-O`.",
+            remediation: "Use explicit validation and raise proper exceptions in production paths.",
+            false_positives: "Test modules and type-checking-only blocks.",
+            tradeoffs: "Asserts are concise for invariants but unsafe as production guards.",
+            examples: "`assert user.is_active` in application code.",
+        },
+        "ZR407" => RuleDocs {
+            explanation: "`eval` and `exec` execute arbitrary code and are major security risks.",
+            remediation: "Use safe parsers, AST literals, or restricted DSLs instead.",
+            false_positives: "Controlled REPL tooling with explicit operator approval.",
+            tradeoffs: "Dynamic execution is flexible but almost never worth the risk in apps.",
+            examples: "`eval(user_input)`",
+        },
+        "ZR414" => RuleDocs {
+            explanation: "Comparing `len(x) > 0` is less idiomatic than truthiness for collections.",
+            remediation: "Use `if xs:` or `if not xs:` when semantics match.",
+            false_positives: "Cases where falsy values differ from empty (custom containers).",
+            tradeoffs: "Truthiness is shorter; length checks can be clearer for non-bool emptiness.",
+            examples: "`if len(items) > 0:`",
+        },
+        "ZR501" => RuleDocs {
+            explanation: "AI-generated placeholders often ship without real implementation.",
+            remediation: "Replace placeholders with real logic or remove dead scaffolding.",
+            false_positives: "Legitimate docs mentioning AI tooling in comments.",
+            tradeoffs: "Catching slop early reduces review load; patterns may miss subtle cases.",
+            examples: "`# TODO: AI generated` in production modules.",
+        },
+        "ZR504" => RuleDocs {
+            explanation: "Generic exception messages make production debugging harder.",
+            remediation: "Include actionable context while avoiding sensitive data in messages.",
+            false_positives: "User-facing messages intentionally generic for security.",
+            tradeoffs: "Detailed errors help engineers but may leak internals if exposed raw.",
+            examples: "`raise Exception(\"Something went wrong\")`",
+        },
+        _ => return None,
     })
 }
 
@@ -715,7 +853,7 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "inconsistent-function-naming",
             Category::Consistency,
             Severity::Low,
-            Detector::PatternAny(&["def ", "__"]),
+            Detector::Precise(PreciseDetector::InconsistentFunctionNaming),
         ),
         rule(
             "ZR102",
@@ -890,7 +1028,7 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "repeated-literal",
             Category::Refactor,
             Severity::Low,
-            Detector::PatternAny(&["\"TODO\"", "\"ERROR\""]),
+            Detector::Precise(PreciseDetector::RepeatedLiteral),
         ),
         rule(
             "ZR307",
@@ -1100,7 +1238,7 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "empty-wrapper-function",
             Category::Ai,
             Severity::Low,
-            Detector::PatternAny(&["def ", "return "]),
+            Detector::Precise(PreciseDetector::EmptyWrapperFunction),
         ),
         rule(
             "ZR507",

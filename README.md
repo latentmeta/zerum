@@ -1,5 +1,8 @@
 # Zerum
 
+[![crates.io](https://img.shields.io/crates/v/zerum.svg)](https://crates.io/crates/zerum)
+[![docs.rs](https://docs.rs/zerum/badge.svg)](https://docs.rs/zerum)
+
 **Zerum** is a Rust-native, deterministic-first code governance tool for Python — *Credo for Python*.
 
 v0.2.0 delivers roughly **75 native checks** (ZR001–ZR510) with explainable findings, `human` and `json` output, and no dependency on external linters or LLMs.
@@ -52,9 +55,12 @@ Run `zerum list-checks` for the full catalog. Use `zerum explain ZR###` for rati
 ```bash
 cargo run -- check . --format human    # default
 cargo run -- check . --format json
+cargo run -- check . --profile strict
+cargo run -- check . --with-external ruff
+cargo run -- list-checkers
 ```
 
-SARIF, Markdown, `review`, and external checker orchestration are **out of scope** for v0.2.0.
+Optional external checkers (Ruff) and SARIF (`--features sarif`) are available from **v0.4.0**. Use the **default profile** for low noise on greenfield code; use `--profile strict` for full catalog coverage.
 
 ## Tutorial
 
@@ -66,6 +72,7 @@ Educational material lives under [`docs/tutorial/`](docs/tutorial/):
 - [03 — Building a rule engine](docs/tutorial/03-building-a-rule-engine.md)
 - [04 — Writing checks](docs/tutorial/04-writing-checks.md)
 - [05 — Explain mode and configuration](docs/tutorial/05-explain-mode-and-configuration.md)
+- [06 — Config and profiles](docs/tutorial/06-config-profiles.md)
 - [12 — Roadmap](docs/tutorial/12-roadmap.md)
 
 ## Development

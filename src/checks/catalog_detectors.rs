@@ -54,6 +54,11 @@ pub fn run_detector(
         CatalogDetector::AmbiguousNoneReturn => detect_ambiguous_none_return(check, ctx),
         CatalogDetector::RejectNoneGuard => detect_reject_none_guard(check, ctx),
         CatalogDetector::FilterNonePattern => detect_filter_none_pattern(check, ctx),
+        CatalogDetector::InconsistentFunctionNaming => {
+            detect_inconsistent_function_naming(check, ctx)
+        }
+        CatalogDetector::RepeatedLiteral => detect_repeated_literal(check, ctx),
+        CatalogDetector::EmptyWrapperFunction => detect_empty_wrapper_function(check, ctx),
     }
 }
 
@@ -90,6 +95,9 @@ pub enum CatalogDetector {
     AmbiguousNoneReturn,
     RejectNoneGuard,
     FilterNonePattern,
+    InconsistentFunctionNaming,
+    RepeatedLiteral,
+    EmptyWrapperFunction,
 }
 
 fn detect_commented_out_code(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
@@ -1211,4 +1219,106 @@ fn expr_is_db_call(expr: &Expr) -> bool {
         }
     }
     false
+}
+
+fn detect_inconsistent_function_naming(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let functions = ctx.source_model().functions();
+    let names: Vec<&str> = functions
+        .iter()
+        .map(|f| f.name.as_str())
+        .filter(|n| !n.starts_with('_'))
+        .collect();
+    if names.len() < 2 {
+        return Vec::new();
+    }
+    let snake = names.iter().filter(|n| is_snake_case(n)).count();
+    let non_snake = names.len() - snake;
+    if snake > 0 && non_snake > 0 {
+        if let Some(f) = functions.first() {
+            return vec![Issue::from_check(
+                check,
+                "module mixes snake_case and non-snake_case function names",
+                ctx.file_path(),
+                f.line,
+                f.column,
+            )];
+        }
+    }
+    Vec::new()
+}
+
+fn is_snake_case(name: &str) -> bool {
+    !name.is_empty()
+        && name
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+}
+
+fn detect_repeated_literal(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let mut counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut first_line = std::collections::HashMap::new();
+    walk_exprs_in_module(ctx.parsed, &mut |expr| {
+        if let Expr::Constant(c) = expr {
+            if let Constant::Str(s) = &c.value {
+                if s.len() >= 4 {
+                    let entry = counts.entry(s.clone()).or_insert(0);
+                    *entry += 1;
+                    first_line.entry(s.clone()).or_insert_with(|| {
+                        line_col(&ctx.parsed.source, expr.start().into()).0
+                    });
+                }
+            }
+        }
+    });
+    let mut issues = Vec::new();
+    for (lit, count) in counts {
+        if count >= 3 {
+            let line = first_line.get(&lit).copied().unwrap_or(1);
+            issues.push(Issue::from_check(
+                check,
+                format!("string literal `{lit}` appears {count} times; extract a named constant"),
+                ctx.file_path(),
+                line,
+                1,
+            ));
+        }
+    }
+    issues
+}
+
+fn detect_empty_wrapper_function(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let mut issues = Vec::new();
+    walk_stmts_in_module(ctx.parsed, &mut |stmt| {
+        let (name, body, start) = match stmt {
+            Stmt::FunctionDef(f) => (f.name.as_str(), f.body.as_slice(), f.start()),
+            Stmt::AsyncFunctionDef(f) => (f.name.as_str(), f.body.as_slice(), f.start()),
+            _ => return,
+        };
+        if name.starts_with("test_") || name.starts_with('_') {
+            return;
+        }
+        if is_wrapper_body(body) {
+            let (line, col) = line_col(&ctx.parsed.source, start.into());
+            issues.push(Issue::from_check(
+                check,
+                format!("function `{name}` is a thin wrapper with no added behavior"),
+                ctx.file_path(),
+                line,
+                col,
+            ));
+        }
+    });
+    issues
+}
+
+fn is_wrapper_body(body: &[Stmt]) -> bool {
+    let meaningful: Vec<_> = body
+        .iter()
+        .filter(|s| !matches!(s, Stmt::Pass(_)))
+        .collect();
+    match meaningful.as_slice() {
+        [Stmt::Return(r)] => matches!(r.value.as_deref(), Some(Expr::Call(_))),
+        [Stmt::Expr(e)] => matches!(e.value.as_ref(), Expr::Call(_)),
+        _ => false,
+    }
 }

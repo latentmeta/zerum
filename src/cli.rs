@@ -1,7 +1,8 @@
-use crate::analyzers::DeterministicAnalyzer;
+use crate::analyzers::{DeterministicAnalyzer, ExternalAnalyzer};
 use crate::config::Config;
 use crate::core::CheckRegistry;
 use crate::discovery::discover_python_files;
+use crate::integrations::builtin_checkers;
 use crate::reporters::{render, ReportKind};
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -18,6 +19,8 @@ pub enum ReportFormat {
     #[default]
     Human,
     Json,
+    #[cfg(feature = "sarif")]
+    Sarif,
 }
 
 impl From<ReportFormat> for ReportKind {
@@ -25,6 +28,8 @@ impl From<ReportFormat> for ReportKind {
         match format {
             ReportFormat::Human => ReportKind::Human,
             ReportFormat::Json => ReportKind::Json,
+            #[cfg(feature = "sarif")]
+            ReportFormat::Sarif => ReportKind::Sarif,
         }
     }
 }
@@ -47,34 +52,80 @@ enum Commands {
         path: PathBuf,
         #[arg(long, value_enum, default_value_t = ReportFormat::Human)]
         format: ReportFormat,
+        /// Config profile name (`default`, `strict`, or custom from zerum.toml)
+        #[arg(long)]
+        profile: Option<String>,
+        /// Run external checker(s), comma-separated (e.g. `ruff`)
+        #[arg(long, value_delimiter = ',')]
+        with_external: Vec<String>,
     },
     /// Explain a check by id (e.g. ZR001)
     Explain { id: String },
     /// Write a starter zerum.toml in the current directory
-    Init,
+    Init {
+        /// Write strict profile example (`zerum.toml.strict.example`) instead of default
+        #[arg(long)]
+        strict: bool,
+    },
     /// List built-in deterministic checks
     ListChecks,
+    /// List configured and available external checkers
+    ListCheckers,
 }
 
 impl Cli {
     pub fn run(self) -> Result<ExitCode> {
         match self.command {
-            Commands::Check { path, format } => run_check(&path, format),
+            Commands::Check {
+                path,
+                format,
+                profile,
+                with_external,
+            } => run_check(&path, format, profile.as_deref(), with_external),
             Commands::Explain { id } => run_explain(&id),
-            Commands::Init => run_init(),
+            Commands::Init { strict } => run_init(strict),
             Commands::ListChecks => run_list_checks(),
+            Commands::ListCheckers => run_list_checkers(),
         }
     }
 }
 
-fn run_check(path: &Path, format: ReportFormat) -> Result<ExitCode> {
-    let config = Config::discover(path)?;
+fn apply_profile_override(mut config: Config, profile: Option<&str>) -> Config {
+    if let Some(name) = profile {
+        config.profile.name = name.to_string();
+    }
+    config
+}
+
+fn run_check(
+    path: &Path,
+    format: ReportFormat,
+    profile: Option<&str>,
+    with_external: Vec<String>,
+) -> Result<ExitCode> {
+    let mut config = Config::discover(path)?;
+    config = apply_profile_override(config, profile);
+
     let files = discover_python_files(path)?;
     if files.is_empty() {
         bail!("no Python files found under {}", path.display());
     }
+
     let analyzer = DeterministicAnalyzer::new();
-    let result = analyzer.analyze_paths(&files, &config);
+    let mut result = analyzer.analyze_paths(&files, &config);
+
+    let mut external_ids = config.external_checkers.clone();
+    external_ids.extend(with_external);
+    if !external_ids.is_empty() {
+        let ext = ExternalAnalyzer::with_checkers(external_ids);
+        let mut external_issues = ext.run(path)?;
+        result.issues.append(&mut external_issues);
+        result.issues.sort_by(|a, b| {
+            (&a.file, a.line, a.column, &a.id, &a.message)
+                .cmp(&(&b.file, b.line, b.column, &b.id, &b.message))
+        });
+    }
+
     println!("{}", render(format.into(), &result.issues)?);
 
     if !result.file_errors.is_empty() && result.issues.is_empty() {
@@ -105,12 +156,17 @@ fn run_explain(id: &str) -> Result<ExitCode> {
     Ok(ExitCode::SUCCESS)
 }
 
-fn run_init() -> Result<ExitCode> {
+fn run_init(strict: bool) -> Result<ExitCode> {
     let dest = PathBuf::from("zerum.toml");
     if dest.exists() {
         bail!("{} already exists", dest.display());
     }
-    std::fs::write(&dest, include_str!("../zerum.toml.example"))?;
+    let template = if strict {
+        include_str!("../zerum.toml.strict.example")
+    } else {
+        include_str!("../zerum.toml.example")
+    };
+    std::fs::write(&dest, template)?;
     println!("Wrote {}", dest.display());
     Ok(ExitCode::SUCCESS)
 }
@@ -125,6 +181,18 @@ fn run_list_checks() -> Result<ExitCode> {
             check.category(),
             check.severity()
         );
+    }
+    Ok(ExitCode::SUCCESS)
+}
+
+fn run_list_checkers() -> Result<ExitCode> {
+    for checker in builtin_checkers() {
+        let status = if checker.is_available() {
+            "available"
+        } else {
+            "not installed"
+        };
+        println!("{}  {}  [{status}]", checker.id(), checker.name());
     }
     Ok(ExitCode::SUCCESS)
 }

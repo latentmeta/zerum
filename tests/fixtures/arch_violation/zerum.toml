@@ -1,6 +1,9 @@
 [profile]
 name = "default"
 
-[[checks.ZR010.rules]]
+[checks.ZR207]
+enabled = true
+
+[[checks.ZR207.rules]]
 from = "app.domain"
 forbidden = "app.infrastructure"

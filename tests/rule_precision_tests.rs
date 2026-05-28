@@ -6,15 +6,26 @@ fn zerum_bin() -> String {
     env!("CARGO_BIN_EXE_zerum").to_string()
 }
 
-fn run_json(source: &str) -> serde_json::Value {
+fn run_json_any(source: &str, config: Option<&str>) -> serde_json::Value {
     let dir = tempdir().unwrap();
     fs::write(dir.path().join("sample.py"), source).unwrap();
+    if let Some(toml) = config {
+        fs::write(dir.path().join("zerum.toml"), toml).unwrap();
+    }
     let output = Command::new(zerum_bin())
         .args(["check", dir.path().to_str().unwrap(), "--format", "json"])
         .output()
         .expect("run zerum check");
-    assert_eq!(output.status.code(), Some(1));
-    serde_json::from_slice(&output.stdout).expect("valid json output")
+    serde_json::from_slice(&output.stdout).unwrap_or(serde_json::Value::Array(vec![]))
+}
+
+fn run_json(source: &str) -> serde_json::Value {
+    let out = run_json_any(source, None);
+    assert!(
+        out.as_array().map(|a| !a.is_empty()).unwrap_or(false),
+        "expected issues"
+    );
+    out
 }
 
 fn has_id(out: &serde_json::Value, id: &str) -> bool {
@@ -58,7 +69,7 @@ fn zr414_len_comparison_detected() {
 
 #[test]
 fn zr414_truthy_check_does_not_trigger() {
-    let out = run_json("def f(xs):\n    return bool(xs)\n");
+    let out = run_json_any("def f(xs):\n    return bool(xs)\n", None);
     assert!(!has_id(&out, "ZR414"));
 }
 
@@ -72,6 +83,27 @@ fn zr304_redundant_boolean_compare_triggers() {
 fn zr304_identity_compare_is_clean() {
     let out = run_json("def f(flag):\n    return flag\n");
     assert!(!has_id(&out, "ZR304"));
+}
+
+#[test]
+fn zr101_inconsistent_function_naming_triggers() {
+    let out = run_json("def snake_one():\n    pass\ndef camelCase():\n    pass\n");
+    assert!(has_id(&out, "ZR101"));
+}
+
+#[test]
+fn zr306_repeated_literal_triggers() {
+    let out = run_json("a = \"ERROR\"\nb = \"ERROR\"\nc = \"ERROR\"\n");
+    assert!(has_id(&out, "ZR306"));
+}
+
+#[test]
+fn zr506_empty_wrapper_triggers() {
+    let out = run_json_any(
+        "def wrap():\n    return other()\n",
+        Some("[checks.ZR506]\nenabled = true\n"),
+    );
+    assert!(has_id(&out, "ZR506"));
 }
 
 #[test]

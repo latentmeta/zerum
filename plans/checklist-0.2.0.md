@@ -30,11 +30,12 @@ Status legend:
 - [x] Confirm output scope:
   - [x] `human`
   - [x] `json`
-- [ ] Create tutorial skeleton files:
-  - [ ] `docs/tutorial/04_rule_design.md`
-  - [ ] `docs/tutorial/05_explain_mode.md`
-- [ ] Add brief “v0.2.0 architecture intent” section to README/tutorial intro
-- [ ] Write Milestone 0 review note (what built, open questions, debt, next step)
+- [x] Create tutorial files:
+  - [x] `docs/tutorial/04-writing-checks.md`
+  - [x] `docs/tutorial/05-explain-mode-and-configuration.md`
+  - [x] `docs/tutorial/06-config-profiles.md` (v0.4.0)
+- [x] README documents v0.2.0+ architecture and install
+- [x] Milestone reviews: `reviews/milestone-3` through `milestone-6-v0.2.0.md`
 
 ---
 
@@ -64,20 +65,20 @@ Status legend:
 
 ### Tests
 
-- [ ] Metadata integrity test (all registered checks have complete metadata)
+- [x] Metadata integrity test (`registry_metadata_is_complete_and_aligned`)
 - [x] Rule ID uniqueness + format test
-- [ ] Config override tests for enable/disable + severity
+- [x] Config override tests for severity (`tests/config_override_tests.rs`)
 
 ### Milestone output
 
-- [ ] Milestone 1 review note
+- [x] Covered in milestone 3–6 review notes
 
 ---
 
 ## 3) Milestone 2 — parser wrapper boundary
 
-- [ ] Introduce parser wrapper/semantic access layer (SourceModel-like)
-- [ ] Keep rustpython internals encapsulated behind local abstraction
+- [x] Introduce parser wrapper/semantic access layer (`SourceModel` in `src/parser/source_model.rs`)
+- [x] Keep rustpython internals encapsulated behind local abstraction
 - [ ] Provide semantic iterators/helpers:
   - [ ] functions
   - [ ] classes

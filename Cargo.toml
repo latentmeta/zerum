@@ -1,6 +1,6 @@
 [package]
 name = "zerum"
-version = "0.2.0"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.70"
 description = "Deterministic-first Python code governance: ~75 native checks (ZR001–ZR510), explain mode, human/JSON CLI"
@@ -39,6 +39,10 @@ serde_json = "1"
 thiserror = "2"
 toml = "0.8"
 walkdir = "2"
+
+[features]
+default = []
+sarif = []
 
 [dev-dependencies]
 insta = { version = "1", features = ["json"] }

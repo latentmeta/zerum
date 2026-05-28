@@ -4,35 +4,40 @@
 
 - [x] Core issue model and `Check` trait
 - [x] rustpython-parser integration
-- [x] ZR001–ZR010 checks with unit tests and fixtures
-- [x] CLI: `check`, `review`, `list-checks`, `explain`, `init`
-- [x] Reporters: human, JSON, Markdown, SARIF (snapshot tests on bad_project)
-- [x] Exit codes 0 / 1 / 2; `review` exits 0 on findings
+- [x] CLI: `check`, `explain`, `list-checks`, `init`
+- [x] Reporters: human, JSON
 - [x] Tutorial chapters 00–03
 
 ## v0.2.0 foundations (complete)
 
 - [x] ~75-rule deterministic catalog (ZR001–ZR510)
 - [x] `SourceModel`, `CheckMetadata`, severity override
-- [x] CLI: `check`, `explain`, `list-checks`, `init`; human + JSON only
-- [x] Tutorial chapters 04–05
 - [x] AST-precise detector module (`catalog_detectors`)
+- [x] Tutorial chapters 04–05
+- [x] Published to crates.io
 
-## Phase 2 — External tools (future)
+## v0.2.x / v0.4.0 hardening (complete)
 
-- [ ] Per-check schema validation in `zerum.toml`
-- [ ] `ExternalChecker` trait + Ruff JSON adapter
-- [ ] Optional SARIF / additional reporters
+- [x] Default profile (disable noisy heuristics)
+- [x] Strict profile and `clean_project` fixture
+- [x] Per-rule explain matrix tests
+- [x] AST batch: ZR101, ZR306, ZR506
+- [x] CI coverage gate ≥70%
 
-## Phase 3 — Architecture and reporters
+## Phase 2 — Configuration (complete in v0.4.0)
 
-- [ ] Relative-import handling for ZR010
-- [ ] SARIF validation against schema
-- [ ] Tutorial chapters 08–09
+- [x] `zerum.toml` schema validation
+- [x] Profile inheritance (`[profiles.*]`)
+- [x] Tutorial chapter 06
 
-## Phase 4 — LLM layer
+## Phase 3 — External tools (complete in v0.4.0)
+
+- [x] `ExternalChecker` trait + Ruff JSON adapter
+- [x] `list-checkers` CLI
+- [x] Optional SARIF reporter (`--features sarif`)
+
+## Phase 4 — LLM layer (future)
 
 - [ ] Opt-in `zerum check --with-llm`
 - [ ] Provider trait, redaction, audit log
-- [ ] Consensus and disagreement reporting
 - [ ] Tutorial chapters 10–11

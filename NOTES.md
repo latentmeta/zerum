@@ -1,17 +1,16 @@
-# v0.2.0 crates.io release — ready when you are
+# Zerum release notes (maintainer)
 
-## Done
+## v0.2.0 — published
 
-- `cargo publish --dry-run --allow-dirty` passes
-- `docs/RELEASING.md` publish checklist
-- `Cargo.toml` exclude trims crate package (no tests/plans in tarball)
-- CHANGELOG version links for 0.2.0
+- crates.io: `zerum` 0.2.0
+- Local tag: `v0.2.0` (see `git tag -l`)
+- Distribution closure: [docs/DISTRO_CLOSURE.md](docs/DISTRO_CLOSURE.md)
 
-## Your steps
+## Next releases (roadmap)
 
-1. Commit all release + CI files (clean tree required for `cargo publish` without `--allow-dirty`)
-2. `cargo publish --dry-run` (no `--allow-dirty`)
-3. `git tag -a v0.2.0 -m "Zerum v0.2.0"`
-4. `git push origin main && git push origin v0.2.0`
-5. `cargo login` then `cargo publish`
-6. GitHub Release binaries via `release.yml` on tag push
+See [docs/tutorial/12-roadmap.md](docs/tutorial/12-roadmap.md) and plan todos:
+
+- **v0.2.1** — default profile, AST batch, CI coverage gate
+- **v0.2.2** — per-rule test matrix, `clean_project` fixture
+- **v0.3.0** — `zerum.toml` schema validation, profiles
+- **v0.4.0** — external checkers (Ruff), `list-checkers`, optional SARIF
