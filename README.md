@@ -6,6 +6,14 @@ v0.2.0 delivers roughly **75 native checks** (ZR001–ZR510) with explainable fi
 
 Zerum is **not** a Ruff replacement. It focuses on maintainability, consistency, architecture boundaries, and deterministic AI-slop patterns.
 
+## Install
+
+```bash
+cargo install zerum
+```
+
+Requires Rust **1.70+** (see `rust-version` in `Cargo.toml`).
+
 ## Quick start
 
 ```bash
@@ -62,6 +70,8 @@ Educational material lives under [`docs/tutorial/`](docs/tutorial/):
 
 ## Development
 
+CI runs lint, tests, coverage, and regression suites on push/PR (see `.github/workflows/ci.yml`).
+
 ```bash
 cargo test
 cargo clippy -- -D warnings
@@ -73,7 +83,7 @@ Category fixtures: `consistency_project`, `refactor_project`, `design_project`, 
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md). Release notes: [v0.1.0](docs/RELEASE_v0.1.0.md) · [v0.2.0](docs/RELEASE_v0.2.0.md).
+See [CHANGELOG.md](CHANGELOG.md). Release notes: [v0.1.0](docs/RELEASE_v0.1.0.md) · [v0.2.0](docs/RELEASE_v0.2.0.md). Publishing: [docs/RELEASING.md](docs/RELEASING.md).
 
 ## License
 

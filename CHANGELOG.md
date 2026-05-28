@@ -89,5 +89,6 @@ First public release — Phase 1 foundation. Deterministic Python governance in 
 - `--with-llm` is accepted but not implemented.
 - `integrations/`, `analyzers/external.rs`, `analyzers/llm.rs`, and `llm/` are stubs only.
 
-[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/latentmeta/zerum/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/latentmeta/zerum/releases/tag/v0.1.0
