@@ -35,6 +35,8 @@ fn refactor_fixture_flags_redundant_boolean_compare() {
     let out = run_check("refactor_project");
     assert!(contains_id(&out, "ZR304"));
     assert!(contains_id(&out, "ZR303"));
+    assert!(contains_id(&out, "ZR302"));
+    assert!(contains_id(&out, "ZR315"));
 }
 
 #[test]

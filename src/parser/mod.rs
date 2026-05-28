@@ -33,9 +33,7 @@ pub fn line_col(source: &str, offset: u32) -> (usize, usize) {
     let offset = floor_byte_offset(source, offset as usize);
     let before = &source[..offset];
     let line = before.matches('\n').count() + 1;
-    let column = before
-        .rfind('\n')
-        .map_or(offset + 1, |idx| offset - idx);
+    let column = before.rfind('\n').map_or(offset + 1, |idx| offset - idx);
     (line, column)
 }
 

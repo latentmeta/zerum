@@ -10,8 +10,7 @@ fn run_check_format(format: &str) -> String {
         .args(["check", path, "--format", format])
         .output()
         .expect("run zerum check");
-    String::from_utf8_lossy(&output.stdout)
-        .replace(env!("CARGO_MANIFEST_DIR"), ".")
+    String::from_utf8_lossy(&output.stdout).replace(env!("CARGO_MANIFEST_DIR"), ".")
 }
 
 #[test]
@@ -25,4 +24,3 @@ fn json_report_snapshot_bad_project() {
     let _: serde_json::Value = serde_json::from_str(&out).expect("valid JSON");
     insta::assert_snapshot!("json_bad_project", out);
 }
-

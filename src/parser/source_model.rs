@@ -1,4 +1,6 @@
-use crate::core::ast_util::{collect_class_metrics, collect_function_metrics, collect_import_modules};
+use crate::core::ast_util::{
+    collect_class_metrics, collect_function_metrics, collect_import_modules,
+};
 use crate::parser::ParsedFile;
 
 #[derive(Debug, Clone)]
@@ -73,7 +75,11 @@ impl<'a> SourceModel<'a> {
     pub fn imports(&self) -> Vec<ImportView> {
         collect_import_modules(self.parsed)
             .into_iter()
-            .map(|(module, line, column)| ImportView { module, line, column })
+            .map(|(module, line, column)| ImportView {
+                module,
+                line,
+                column,
+            })
             .collect()
     }
 
@@ -93,4 +99,3 @@ impl<'a> SourceModel<'a> {
             .collect()
     }
 }
-

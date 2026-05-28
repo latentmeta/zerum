@@ -21,7 +21,11 @@ max_lines = 1
 "#,
     )
     .unwrap();
-    fs::write(root.join("example.py"), "def long_fn():\n    a=1\n    b=2\n    c=3\n").unwrap();
+    fs::write(
+        root.join("example.py"),
+        "def long_fn():\n    a=1\n    b=2\n    c=3\n",
+    )
+    .unwrap();
 
     let output = Command::new(zerum_bin())
         .args(["check", root.to_str().unwrap(), "--format", "json"])
@@ -36,4 +40,3 @@ max_lines = 1
         "stdout: {stdout}"
     );
 }
-

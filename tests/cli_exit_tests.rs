@@ -35,4 +35,3 @@ fn issues_found_exit_issues() {
 
     assert_eq!(output.status.code(), Some(i32::from(EXIT_ISSUES)));
 }
-

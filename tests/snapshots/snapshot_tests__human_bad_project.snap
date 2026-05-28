@@ -26,12 +26,6 @@ expression: "run_check_format(\"human\")"
 [low] ZR405 ./tests/fixtures/bad_project/messy.py:2:5 — print() used for debugging
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR309 ./tests/fixtures/bad_project/messy.py:3:5 — matches pattern `try:`
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR309 ./tests/fixtures/bad_project/messy.py:5:5 — matches pattern `except`
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
 [high] ZR401 ./tests/fixtures/bad_project/messy.py:5:5 — broad except handler catches Exception/BaseException
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
@@ -56,193 +50,31 @@ expression: "run_check_format(\"human\")"
 [low] ZR506 ./tests/fixtures/bad_project/messy.py:8:1 — matches pattern `def `
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:9:5 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:9:5 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:9:5 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:9:5 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:9:5 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:11:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:11:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:11:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:11:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:11:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:13:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:13:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:13:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:13:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:13:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:15:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:15:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:15:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:15:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:15:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR006 ./tests/fixtures/bad_project/messy.py:15:14 — magic numeric literal `3`
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:17:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:17:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:17:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:17:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:17:7 — matches pattern `if `
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR006 ./tests/fixtures/bad_project/messy.py:17:14 — magic numeric literal `4`
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:19:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:19:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:19:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:19:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:19:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR006 ./tests/fixtures/bad_project/messy.py:19:14 — magic numeric literal `5`
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:21:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:21:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:21:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:21:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:21:7 — matches pattern `if `
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR006 ./tests/fixtures/bad_project/messy.py:21:14 — magic numeric literal `6`
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:23:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:23:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:23:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:23:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:23:7 — matches pattern `if `
+[low] ZR301 ./tests/fixtures/bad_project/messy.py:23:5 — if and elif branches have identical bodies
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR006 ./tests/fixtures/bad_project/messy.py:23:14 — magic numeric literal `7`
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:25:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:25:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:25:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:25:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:25:7 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR006 ./tests/fixtures/bad_project/messy.py:25:14 — magic numeric literal `8`
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[medium] ZR412 ./tests/fixtures/bad_project/messy.py:28:9 — matches pattern `for `
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR006 ./tests/fixtures/bad_project/messy.py:28:24 — magic numeric literal `3`
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:29:13 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:29:13 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:29:13 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:29:13 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:29:13 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR301 ./tests/fixtures/bad_project/messy.py:30:17 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR302 ./tests/fixtures/bad_project/messy.py:30:17 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR305 ./tests/fixtures/bad_project/messy.py:30:17 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR308 ./tests/fixtures/bad_project/messy.py:30:17 — matches pattern `if `
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[low] ZR312 ./tests/fixtures/bad_project/messy.py:30:17 — matches pattern `if `
+[low] ZR302 ./tests/fixtures/bad_project/messy.py:29:13 — nested if without else can be collapsed with `and`
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR008 ./tests/fixtures/bad_project/messy.py:33:1 — function `bad_default` is missing a docstring
@@ -270,9 +102,6 @@ expression: "run_check_format(\"human\")"
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR110 ./tests/fixtures/bad_project/messy.py:34:5 — matches pattern `return`
-  explanation: This finding highlights maintainability risk in deterministic analysis.
-  remediation: Refactor for clarity and consistency with project conventions.
-[medium] ZR410 ./tests/fixtures/bad_project/messy.py:34:5 — matches pattern `return`
   explanation: This finding highlights maintainability risk in deterministic analysis.
   remediation: Refactor for clarity and consistency with project conventions.
 [low] ZR506 ./tests/fixtures/bad_project/messy.py:34:5 — matches pattern `return `

@@ -1,8 +1,6 @@
 use crate::parser::{line_col, ParsedFile};
-use rustpython_ast::{
-    Arguments, ExceptHandler, Expr, Identifier, Mod, Pattern, Stmt, Ranged,
-};
 use rustpython_ast::text_size::TextSize;
+use rustpython_ast::{Arguments, ExceptHandler, Expr, Identifier, Mod, Pattern, Ranged, Stmt};
 
 #[derive(Debug, Clone)]
 pub struct FunctionMetrics {
@@ -83,20 +81,24 @@ pub fn collect_class_metrics(parsed: &ParsedFile) -> Vec<ClassMetrics> {
 
 /// Visits every expression in the module using [`walk_stmts`] for nesting (no duplicated control-flow descent).
 pub fn walk_exprs_in_module(parsed: &ParsedFile, f: &mut impl FnMut(&Expr)) {
-    walk_stmts(parsed, module_body(&parsed.module), &mut |stmt| visit_stmt_exprs(stmt, f));
+    walk_stmts(parsed, module_body(&parsed.module), &mut |stmt| {
+        visit_stmt_exprs(stmt, f)
+    });
 }
 
 pub fn walk_function_defs(
     parsed: &ParsedFile,
     f: &mut impl FnMut(&Arguments, TextSize, &Identifier),
 ) {
-    walk_stmts(parsed, module_body(&parsed.module), &mut |stmt| {
-        match stmt {
+    walk_stmts(
+        parsed,
+        module_body(&parsed.module),
+        &mut |stmt| match stmt {
             Stmt::FunctionDef(fd) => f(&fd.args, fd.start(), &fd.name),
             Stmt::AsyncFunctionDef(fd) => f(&fd.args, fd.start(), &fd.name),
             _ => {}
-        }
-    });
+        },
+    );
 }
 
 pub fn has_mutable_defaults(args: &Arguments) -> bool {
@@ -152,7 +154,12 @@ pub fn is_broad_except_handler(handler: &ExceptHandler) -> bool {
 pub fn is_mutable_expr(expr: &Expr) -> bool {
     matches!(
         expr,
-        Expr::List(_) | Expr::Dict(_) | Expr::Set(_) | Expr::ListComp(_) | Expr::DictComp(_) | Expr::SetComp(_)
+        Expr::List(_)
+            | Expr::Dict(_)
+            | Expr::Set(_)
+            | Expr::ListComp(_)
+            | Expr::DictComp(_)
+            | Expr::SetComp(_)
     )
 }
 
@@ -195,8 +202,22 @@ fn descend_stmt(parsed: &ParsedFile, stmt: &Stmt, visitor: &mut impl FnMut(&Stmt
         }
         Stmt::With(w) => walk_stmts(parsed, &w.body, visitor),
         Stmt::AsyncWith(w) => walk_stmts(parsed, &w.body, visitor),
-        Stmt::Try(t) => walk_try_stmts(parsed, t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), visitor),
-        Stmt::TryStar(t) => walk_try_stmts(parsed, t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), visitor),
+        Stmt::Try(t) => walk_try_stmts(
+            parsed,
+            t.body.as_slice(),
+            &t.handlers,
+            t.orelse.as_slice(),
+            t.finalbody.as_slice(),
+            visitor,
+        ),
+        Stmt::TryStar(t) => walk_try_stmts(
+            parsed,
+            t.body.as_slice(),
+            &t.handlers,
+            t.orelse.as_slice(),
+            t.finalbody.as_slice(),
+            visitor,
+        ),
         Stmt::Match(m) => {
             for case in &m.cases {
                 walk_stmts(parsed, &case.body, visitor);
@@ -501,8 +522,20 @@ fn max_conditional_depth(stmts: &[Stmt], depth: usize) -> usize {
             Stmt::While(w) => max_conditional_depth(&w.body, depth + 1),
             Stmt::For(fr) => max_conditional_depth(&fr.body, depth + 1),
             Stmt::AsyncFor(fr) => max_conditional_depth(&fr.body, depth + 1),
-            Stmt::Try(t) => depth_try(t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), depth),
-            Stmt::TryStar(t) => depth_try(t.body.as_slice(), &t.handlers, t.orelse.as_slice(), t.finalbody.as_slice(), depth),
+            Stmt::Try(t) => depth_try(
+                t.body.as_slice(),
+                &t.handlers,
+                t.orelse.as_slice(),
+                t.finalbody.as_slice(),
+                depth,
+            ),
+            Stmt::TryStar(t) => depth_try(
+                t.body.as_slice(),
+                &t.handlers,
+                t.orelse.as_slice(),
+                t.finalbody.as_slice(),
+                depth,
+            ),
             Stmt::Match(m) => m
                 .cases
                 .iter()
@@ -537,8 +570,10 @@ fn depth_try(
 
 pub fn collect_import_modules(parsed: &ParsedFile) -> Vec<(String, usize, usize)> {
     let mut out = Vec::new();
-    walk_stmts(parsed, module_body(&parsed.module), &mut |stmt| {
-        match stmt {
+    walk_stmts(
+        parsed,
+        module_body(&parsed.module),
+        &mut |stmt| match stmt {
             Stmt::Import(i) => {
                 for alias in &i.names {
                     let (line, column) = line_col(&parsed.source, offset(alias.start()));
@@ -558,8 +593,8 @@ pub fn collect_import_modules(parsed: &ParsedFile) -> Vec<(String, usize, usize)
                 }
             }
             _ => {}
-        }
-    });
+        },
+    );
     out
 }
 

@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::path::PathBuf;
 use zerum::core::{Category, ConfidenceKind, Issue, Severity};
-use zerum::reporters::{ReportKind, render};
+use zerum::reporters::{render, ReportKind};
 
 fn sample_issue() -> Issue {
     Issue {

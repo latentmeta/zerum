@@ -2,8 +2,8 @@ use crate::analyzers::DeterministicAnalyzer;
 use crate::config::Config;
 use crate::core::CheckRegistry;
 use crate::discovery::discover_python_files;
-use crate::reporters::{ReportKind, render};
-use anyhow::{Context, Result, bail};
+use crate::reporters::{render, ReportKind};
+use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -30,7 +30,11 @@ impl From<ReportFormat> for ReportKind {
 }
 
 #[derive(Parser, Debug)]
-#[command(name = "zerum", version, about = "Deterministic code governance for Python")]
+#[command(
+    name = "zerum",
+    version,
+    about = "Deterministic code governance for Python"
+)]
 pub struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -45,9 +49,7 @@ enum Commands {
         format: ReportFormat,
     },
     /// Explain a check by id (e.g. ZR001)
-    Explain {
-        id: String,
-    },
+    Explain { id: String },
     /// Write a starter zerum.toml in the current directory
     Init,
     /// List built-in deterministic checks
@@ -57,10 +59,7 @@ enum Commands {
 impl Cli {
     pub fn run(self) -> Result<ExitCode> {
         match self.command {
-            Commands::Check {
-                path,
-                format,
-            } => run_check(&path, format),
+            Commands::Check { path, format } => run_check(&path, format),
             Commands::Explain { id } => run_explain(&id),
             Commands::Init => run_init(),
             Commands::ListChecks => run_list_checks(),
@@ -129,4 +128,3 @@ fn run_list_checks() -> Result<ExitCode> {
     }
     Ok(ExitCode::SUCCESS)
 }
-

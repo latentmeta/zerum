@@ -84,7 +84,11 @@ impl Check for CatalogCheck {
         }
         match self.detector {
             Detector::LongFunction(default) => {
-                let max = ctx.config.check_config(self.id()).max_lines.unwrap_or(default);
+                let max = ctx
+                    .config
+                    .check_config(self.id())
+                    .max_lines
+                    .unwrap_or(default);
                 ctx.source_model()
                     .functions()
                     .into_iter()
@@ -92,7 +96,10 @@ impl Check for CatalogCheck {
                     .map(|m| {
                         Issue::from_check(
                             self,
-                            format!("function `{}` spans ~{} lines (max {})", m.name, m.body_lines, max),
+                            format!(
+                                "function `{}` spans ~{} lines (max {})",
+                                m.name, m.body_lines, max
+                            ),
                             ctx.file_path(),
                             m.line,
                             m.column,
@@ -113,7 +120,10 @@ impl Check for CatalogCheck {
                     .map(|m| {
                         Issue::from_check(
                             self,
-                            format!("function `{}` has {} arguments (max {})", m.name, m.arg_count, max),
+                            format!(
+                                "function `{}` has {} arguments (max {})",
+                                m.name, m.arg_count, max
+                            ),
                             ctx.file_path(),
                             m.line,
                             m.column,
@@ -122,7 +132,11 @@ impl Check for CatalogCheck {
                     .collect()
             }
             Detector::DeepNesting(default) => {
-                let max = ctx.config.check_config(self.id()).max_depth.unwrap_or(default);
+                let max = ctx
+                    .config
+                    .check_config(self.id())
+                    .max_depth
+                    .unwrap_or(default);
                 ctx.source_model()
                     .functions()
                     .into_iter()
@@ -154,7 +168,10 @@ impl Check for CatalogCheck {
                     .map(|m| {
                         Issue::from_check(
                             self,
-                            format!("class `{}` defines {} methods (max {})", m.name, m.method_count, max),
+                            format!(
+                                "class `{}` defines {} methods (max {})",
+                                m.name, m.method_count, max
+                            ),
                             ctx.file_path(),
                             m.line,
                             m.column,
@@ -316,7 +333,12 @@ impl Check for CatalogCheck {
                 .filter_map(|m| {
                     let needle = format!("def {}", m.name);
                     let line_idx = ctx.source.lines().position(|l| l.contains(&needle))?;
-                    let next = ctx.source.lines().nth(line_idx + 1).unwrap_or_default().trim();
+                    let next = ctx
+                        .source
+                        .lines()
+                        .nth(line_idx + 1)
+                        .unwrap_or_default()
+                        .trim();
                     if next.starts_with("\"\"\"") || next.starts_with("'''") {
                         None
                     } else {
@@ -396,7 +418,9 @@ impl Check for CatalogCheck {
                 });
                 issues
             }
-            Detector::ForbiddenArchitectureImport => run_forbidden_arch_import(self, ctx, ctx.config),
+            Detector::ForbiddenArchitectureImport => {
+                run_forbidden_arch_import(self, ctx, ctx.config)
+            }
             Detector::Precise(det) => catalog_detectors::run_detector(self, ctx, det),
         }
     }
@@ -474,7 +498,11 @@ fn has_module_docstring(source: &str) -> bool {
     false
 }
 
-fn run_forbidden_arch_import(check: &CatalogCheck, ctx: &CheckContext, config: &Config) -> Vec<Issue> {
+fn run_forbidden_arch_import(
+    check: &CatalogCheck,
+    ctx: &CheckContext,
+    config: &Config,
+) -> Vec<Issue> {
     let rules = &config.check_config(check.id()).rules;
     if rules.is_empty() {
         return Vec::new();
@@ -509,7 +537,9 @@ fn path_contains_layer(path: &std::path::Path, layer: &str) -> bool {
         .components()
         .filter_map(|c| c.as_os_str().to_str())
         .collect();
-    components.windows(parts.len()).any(|w| w == parts.as_slice())
+    components
+        .windows(parts.len())
+        .any(|w| w == parts.as_slice())
 }
 
 fn is_magic_numeric_literal(text: &str) -> bool {
@@ -520,9 +550,7 @@ fn is_magic_numeric_literal(text: &str) -> bool {
     !matches!(
         cleaned,
         "0" | "1" | "2" | "10" | "0.0" | "1.0" | "2.0" | "10.0"
-    ) && cleaned
-        .chars()
-        .all(|c| c.is_ascii_digit() || c == '.')
+    ) && cleaned.chars().all(|c| c.is_ascii_digit() || c == '.')
 }
 
 fn is_len_call(expr: &Expr) -> bool {
@@ -577,81 +605,530 @@ fn rule(
 
 pub fn build_catalog() -> Vec<Box<dyn Check>> {
     vec![
-        rule("ZR001", "long-function", Category::Readability, Severity::Low, Detector::LongFunction(50)),
-        rule("ZR002", "too-many-arguments", Category::Readability, Severity::Low, Detector::TooManyArguments(5)),
-        rule("ZR003", "deep-nesting", Category::Readability, Severity::Medium, Detector::DeepNesting(3)),
-        rule("ZR004", "complex-boolean-expression", Category::Readability, Severity::Low, Detector::ComplexBooleanExpression(3)),
-        rule("ZR005", "unclear-variable-name", Category::Readability, Severity::Low, Detector::Precise(PreciseDetector::ShortVariableName)),
-        rule("ZR006", "magic-number", Category::Readability, Severity::Low, Detector::MagicNumber),
-        rule("ZR007", "missing-module-docstring", Category::Readability, Severity::Low, Detector::MissingModuleDocstring),
-        rule("ZR008", "missing-function-docstring", Category::Readability, Severity::Low, Detector::MissingFunctionDocstring),
-        rule("ZR009", "commented-out-code", Category::Readability, Severity::Low, Detector::Precise(PreciseDetector::CommentedOutCode)),
-        rule("ZR010", "todo-without-context", Category::Readability, Severity::Low, Detector::TodoWithoutContext),
-        rule("ZR011", "narrator-docstring", Category::Readability, Severity::Low, Detector::PatternAny(&["this function", "this module"])),
-        rule("ZR012", "boilerplate-docstring", Category::Readability, Severity::Low, Detector::PatternAny(&["auto-generated", "boilerplate"])),
-        rule("ZR013", "step-comment", Category::Readability, Severity::Low, Detector::PatternComment(&["step 1", "step 2", "step 3"])),
-        rule("ZR014", "narrator-comment", Category::Readability, Severity::Low, Detector::PatternComment(&["now we", "then we"])),
-        rule("ZR015", "obvious-comment", Category::Readability, Severity::Low, Detector::PatternComment(&["increment x", "set value"])),
-        rule("ZR101", "inconsistent-function-naming", Category::Consistency, Severity::Low, Detector::PatternAny(&["def ", "__"])),
-        rule("ZR102", "inconsistent-class-naming", Category::Consistency, Severity::Low, Detector::PatternAny(&["class ", "_"])),
-        rule("ZR103", "inconsistent-constant-naming", Category::Consistency, Severity::Low, Detector::PatternAny(&[" = \"", " = '"])),
-        rule("ZR104", "inconsistent-import-style", Category::Consistency, Severity::Low, Detector::PatternAny(&["import ", "from "])),
-        rule("ZR105", "mixed-quote-style", Category::Consistency, Severity::Low, Detector::Precise(PreciseDetector::MixedStringQuotes)),
-        rule("ZR106", "inconsistent-test-naming", Category::Consistency, Severity::Low, Detector::Precise(PreciseDetector::TestAndShouldFunctionMix)),
-        rule("ZR107", "inconsistent-private-prefix", Category::Consistency, Severity::Low, Detector::PatternAny(&["def _", "def __"])),
-        rule("ZR108", "duplicate-naming-pattern", Category::Consistency, Severity::Low, Detector::PatternAny(&["manager", "service", "helper"])),
-        rule("ZR109", "mixed-collection-style", Category::Consistency, Severity::Low, Detector::PatternAny(&["[]", "{}"])),
-        rule("ZR110", "mixed-return-style", Category::Consistency, Severity::Low, Detector::PatternAny(&["return", "yield"])),
-        rule("ZR201", "god-class", Category::Design, Severity::Medium, Detector::GodClass(15)),
-        rule("ZR202", "too-many-instance-variables", Category::Design, Severity::Medium, Detector::PatternAny(&["self.", "self.", "self."])),
-        rule("ZR203", "too-many-public-methods", Category::Design, Severity::Medium, Detector::PatternAny(&["def ", "class "])),
-        rule("ZR204", "feature-envy", Category::Design, Severity::Medium, Detector::PatternAny(&["other.", ".get_", ".set_"])),
-        rule("ZR205", "dataclass-without-behavior", Category::Design, Severity::Low, Detector::Precise(PreciseDetector::DataclassWithoutBehavior)),
-        rule("ZR206", "circular-import", Category::Design, Severity::High, Detector::PatternAny(&["import app.", "from app."])),
-        rule("ZR207", "forbidden-architecture-import", Category::Design, Severity::High, Detector::ForbiddenArchitectureImport),
-        rule("ZR208", "layer-violation", Category::Design, Severity::High, Detector::PatternAny(&["infrastructure", "domain"])),
-        rule("ZR209", "service-object-explosion", Category::Design, Severity::Low, Detector::Precise(PreciseDetector::ServiceNamingExplosion)),
-        rule("ZR210", "excessive-indirection", Category::Design, Severity::Low, Detector::PatternAny(&["delegate(", "wrapper("])),
-        rule("ZR301", "duplicate-branch-body", Category::Refactor, Severity::Low, Detector::PatternAny(&["if ", "elif "])),
-        rule("ZR302", "collapsible-if", Category::Refactor, Severity::Low, Detector::PatternAny(&["if ", "if "])),
-        rule("ZR303", "unnecessary-else-after-return", Category::Refactor, Severity::Low, Detector::Precise(PreciseDetector::UnnecessaryElseAfterReturn)),
-        rule("ZR304", "redundant-boolean-comparison", Category::Refactor, Severity::Low, Detector::Precise(PreciseDetector::RedundantBooleanComparison)),
-        rule("ZR305", "simplifiable-if-expression", Category::Refactor, Severity::Low, Detector::PatternAny(&["if ", "else"])),
-        rule("ZR306", "repeated-literal", Category::Refactor, Severity::Low, Detector::PatternAny(&["\"TODO\"", "\"ERROR\""])),
-        rule("ZR307", "long-parameter-list", Category::Refactor, Severity::Low, Detector::TooManyArguments(7)),
-        rule("ZR308", "extractable-condition", Category::Refactor, Severity::Low, Detector::PatternAny(&[" and ", " or ", "if "])),
-        rule("ZR309", "repeated-try-except", Category::Refactor, Severity::Low, Detector::PatternAny(&["try:", "except"])),
-        rule("ZR310", "identity-passthrough", Category::Refactor, Severity::Low, Detector::Precise(PreciseDetector::IdentityPassthrough)),
-        rule("ZR311", "identity-map", Category::Refactor, Severity::Low, Detector::Precise(PreciseDetector::IdentityMap)),
-        rule("ZR312", "reject-none", Category::Refactor, Severity::Low, Detector::PatternAny(&["is not None", "if "])),
-        rule("ZR313", "filter-none", Category::Refactor, Severity::Low, Detector::PatternAny(&["if x is not None"])),
-        rule("ZR314", "manual-string-join", Category::Refactor, Severity::Low, Detector::PatternAny(&["+=", "str("])),
-        rule("ZR315", "sort-then-reverse", Category::Refactor, Severity::Low, Detector::PatternAny(&["sort(", "reverse("])),
-        rule("ZR401", "broad-except", Category::Warning, Severity::High, Detector::BroadExcept),
-        rule("ZR402", "empty-except", Category::Warning, Severity::High, Detector::Precise(PreciseDetector::ExceptHandlerOnlyPass { bare_only: true })),
-        rule("ZR403", "bare-except", Category::Warning, Severity::High, Detector::BareExcept),
-        rule("ZR404", "mutable-default-argument", Category::Warning, Severity::High, Detector::MutableDefaultArgument),
-        rule("ZR405", "print-debugging", Category::Warning, Severity::Low, Detector::PrintDebugging),
-        rule("ZR406", "assert-production", Category::Warning, Severity::Medium, Detector::AssertProduction),
-        rule("ZR407", "dangerous-eval-exec", Category::Warning, Severity::High, Detector::DangerousEvalExec),
-        rule("ZR408", "silent-exception-swallowing", Category::Warning, Severity::High, Detector::Precise(PreciseDetector::ExceptHandlerOnlyPass { bare_only: false })),
-        rule("ZR409", "global-mutable-state", Category::Warning, Severity::Medium, Detector::Precise(PreciseDetector::GlobalMutableAssignment)),
-        rule("ZR410", "ambiguous-none-return", Category::Warning, Severity::Medium, Detector::PatternAny(&["return None", "return"])),
-        rule("ZR411", "blanket-except", Category::Warning, Severity::High, Detector::Precise(PreciseDetector::BlanketExceptException)),
-        rule("ZR412", "query-in-loop", Category::Warning, Severity::Medium, Detector::PatternAny(&["for ", ".query(", ".execute("])),
-        rule("ZR413", "silent-fallback", Category::Warning, Severity::Medium, Detector::Precise(PreciseDetector::SilentFallbackReturnNone)),
-        rule("ZR414", "length-comparison", Category::Warning, Severity::Low, Detector::LengthComparison),
-        rule("ZR415", "sort-for-top-k", Category::Warning, Severity::Low, Detector::PatternAny(&["sorted(", "[:"])),
-        rule("ZR501", "placeholder-generated-code", Category::Ai, Severity::Medium, Detector::Precise(PreciseDetector::AiPlaceholderInComment)),
-        rule("ZR502", "generated-comment-pattern", Category::Ai, Severity::Medium, Detector::Precise(PreciseDetector::GeneratedCommentPattern)),
-        rule("ZR503", "excessive-narration", Category::Ai, Severity::Low, Detector::PatternComment(&["this function does", "in this step"])),
-        rule("ZR504", "generic-exception-message", Category::Ai, Severity::Low, Detector::Precise(PreciseDetector::GenericExceptionMessage)),
-        rule("ZR505", "boilerplate-parameter-docs", Category::Ai, Severity::Low, Detector::PatternAny(&[":param ", ":return:"])),
-        rule("ZR506", "empty-wrapper-function", Category::Ai, Severity::Low, Detector::PatternAny(&["def ", "return "])),
-        rule("ZR507", "generated-dead-branch", Category::Ai, Severity::Low, Detector::Precise(PreciseDetector::GeneratedDeadBranch)),
-        rule("ZR508", "defensive-overengineering", Category::Ai, Severity::Low, Detector::Precise(PreciseDetector::DefensiveNamingSuffix)),
-        rule("ZR509", "excessive-abstraction", Category::Ai, Severity::Low, Detector::PatternAny(&["Abstract", "Base", "Interface"])),
-        rule("ZR510", "generic-utility-explosion", Category::Ai, Severity::Low, Detector::PatternAny(&["utils", "helpers", "common"])),
+        rule(
+            "ZR001",
+            "long-function",
+            Category::Readability,
+            Severity::Low,
+            Detector::LongFunction(50),
+        ),
+        rule(
+            "ZR002",
+            "too-many-arguments",
+            Category::Readability,
+            Severity::Low,
+            Detector::TooManyArguments(5),
+        ),
+        rule(
+            "ZR003",
+            "deep-nesting",
+            Category::Readability,
+            Severity::Medium,
+            Detector::DeepNesting(3),
+        ),
+        rule(
+            "ZR004",
+            "complex-boolean-expression",
+            Category::Readability,
+            Severity::Low,
+            Detector::ComplexBooleanExpression(3),
+        ),
+        rule(
+            "ZR005",
+            "unclear-variable-name",
+            Category::Readability,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::ShortVariableName),
+        ),
+        rule(
+            "ZR006",
+            "magic-number",
+            Category::Readability,
+            Severity::Low,
+            Detector::MagicNumber,
+        ),
+        rule(
+            "ZR007",
+            "missing-module-docstring",
+            Category::Readability,
+            Severity::Low,
+            Detector::MissingModuleDocstring,
+        ),
+        rule(
+            "ZR008",
+            "missing-function-docstring",
+            Category::Readability,
+            Severity::Low,
+            Detector::MissingFunctionDocstring,
+        ),
+        rule(
+            "ZR009",
+            "commented-out-code",
+            Category::Readability,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::CommentedOutCode),
+        ),
+        rule(
+            "ZR010",
+            "todo-without-context",
+            Category::Readability,
+            Severity::Low,
+            Detector::TodoWithoutContext,
+        ),
+        rule(
+            "ZR011",
+            "narrator-docstring",
+            Category::Readability,
+            Severity::Low,
+            Detector::PatternAny(&["this function", "this module"]),
+        ),
+        rule(
+            "ZR012",
+            "boilerplate-docstring",
+            Category::Readability,
+            Severity::Low,
+            Detector::PatternAny(&["auto-generated", "boilerplate"]),
+        ),
+        rule(
+            "ZR013",
+            "step-comment",
+            Category::Readability,
+            Severity::Low,
+            Detector::PatternComment(&["step 1", "step 2", "step 3"]),
+        ),
+        rule(
+            "ZR014",
+            "narrator-comment",
+            Category::Readability,
+            Severity::Low,
+            Detector::PatternComment(&["now we", "then we"]),
+        ),
+        rule(
+            "ZR015",
+            "obvious-comment",
+            Category::Readability,
+            Severity::Low,
+            Detector::PatternComment(&["increment x", "set value"]),
+        ),
+        rule(
+            "ZR101",
+            "inconsistent-function-naming",
+            Category::Consistency,
+            Severity::Low,
+            Detector::PatternAny(&["def ", "__"]),
+        ),
+        rule(
+            "ZR102",
+            "inconsistent-class-naming",
+            Category::Consistency,
+            Severity::Low,
+            Detector::PatternAny(&["class ", "_"]),
+        ),
+        rule(
+            "ZR103",
+            "inconsistent-constant-naming",
+            Category::Consistency,
+            Severity::Low,
+            Detector::PatternAny(&[" = \"", " = '"]),
+        ),
+        rule(
+            "ZR104",
+            "inconsistent-import-style",
+            Category::Consistency,
+            Severity::Low,
+            Detector::PatternAny(&["import ", "from "]),
+        ),
+        rule(
+            "ZR105",
+            "mixed-quote-style",
+            Category::Consistency,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::MixedStringQuotes),
+        ),
+        rule(
+            "ZR106",
+            "inconsistent-test-naming",
+            Category::Consistency,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::TestAndShouldFunctionMix),
+        ),
+        rule(
+            "ZR107",
+            "inconsistent-private-prefix",
+            Category::Consistency,
+            Severity::Low,
+            Detector::PatternAny(&["def _", "def __"]),
+        ),
+        rule(
+            "ZR108",
+            "duplicate-naming-pattern",
+            Category::Consistency,
+            Severity::Low,
+            Detector::PatternAny(&["manager", "service", "helper"]),
+        ),
+        rule(
+            "ZR109",
+            "mixed-collection-style",
+            Category::Consistency,
+            Severity::Low,
+            Detector::PatternAny(&["[]", "{}"]),
+        ),
+        rule(
+            "ZR110",
+            "mixed-return-style",
+            Category::Consistency,
+            Severity::Low,
+            Detector::PatternAny(&["return", "yield"]),
+        ),
+        rule(
+            "ZR201",
+            "god-class",
+            Category::Design,
+            Severity::Medium,
+            Detector::GodClass(15),
+        ),
+        rule(
+            "ZR202",
+            "too-many-instance-variables",
+            Category::Design,
+            Severity::Medium,
+            Detector::PatternAny(&["self.", "self.", "self."]),
+        ),
+        rule(
+            "ZR203",
+            "too-many-public-methods",
+            Category::Design,
+            Severity::Medium,
+            Detector::PatternAny(&["def ", "class "]),
+        ),
+        rule(
+            "ZR204",
+            "feature-envy",
+            Category::Design,
+            Severity::Medium,
+            Detector::PatternAny(&["other.", ".get_", ".set_"]),
+        ),
+        rule(
+            "ZR205",
+            "dataclass-without-behavior",
+            Category::Design,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::DataclassWithoutBehavior),
+        ),
+        rule(
+            "ZR206",
+            "circular-import",
+            Category::Design,
+            Severity::High,
+            Detector::PatternAny(&["import app.", "from app."]),
+        ),
+        rule(
+            "ZR207",
+            "forbidden-architecture-import",
+            Category::Design,
+            Severity::High,
+            Detector::ForbiddenArchitectureImport,
+        ),
+        rule(
+            "ZR208",
+            "layer-violation",
+            Category::Design,
+            Severity::High,
+            Detector::PatternAny(&["infrastructure", "domain"]),
+        ),
+        rule(
+            "ZR209",
+            "service-object-explosion",
+            Category::Design,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::ServiceNamingExplosion),
+        ),
+        rule(
+            "ZR210",
+            "excessive-indirection",
+            Category::Design,
+            Severity::Low,
+            Detector::PatternAny(&["delegate(", "wrapper("]),
+        ),
+        rule(
+            "ZR301",
+            "duplicate-branch-body",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::DuplicateBranchBody),
+        ),
+        rule(
+            "ZR302",
+            "collapsible-if",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::CollapsibleIf),
+        ),
+        rule(
+            "ZR303",
+            "unnecessary-else-after-return",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::UnnecessaryElseAfterReturn),
+        ),
+        rule(
+            "ZR304",
+            "redundant-boolean-comparison",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::RedundantBooleanComparison),
+        ),
+        rule(
+            "ZR305",
+            "simplifiable-if-expression",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::SimplifiableIfExpression),
+        ),
+        rule(
+            "ZR306",
+            "repeated-literal",
+            Category::Refactor,
+            Severity::Low,
+            Detector::PatternAny(&["\"TODO\"", "\"ERROR\""]),
+        ),
+        rule(
+            "ZR307",
+            "long-parameter-list",
+            Category::Refactor,
+            Severity::Low,
+            Detector::TooManyArguments(7),
+        ),
+        rule(
+            "ZR308",
+            "extractable-condition",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::ExtractableCondition),
+        ),
+        rule(
+            "ZR309",
+            "repeated-try-except",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::RepeatedTryExcept),
+        ),
+        rule(
+            "ZR310",
+            "identity-passthrough",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::IdentityPassthrough),
+        ),
+        rule(
+            "ZR311",
+            "identity-map",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::IdentityMap),
+        ),
+        rule(
+            "ZR312",
+            "reject-none",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::RejectNoneGuard),
+        ),
+        rule(
+            "ZR313",
+            "filter-none",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::FilterNonePattern),
+        ),
+        rule(
+            "ZR314",
+            "manual-string-join",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::ManualStringJoinInLoop),
+        ),
+        rule(
+            "ZR315",
+            "sort-then-reverse",
+            Category::Refactor,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::SortThenReverse),
+        ),
+        rule(
+            "ZR401",
+            "broad-except",
+            Category::Warning,
+            Severity::High,
+            Detector::BroadExcept,
+        ),
+        rule(
+            "ZR402",
+            "empty-except",
+            Category::Warning,
+            Severity::High,
+            Detector::Precise(PreciseDetector::ExceptHandlerOnlyPass { bare_only: true }),
+        ),
+        rule(
+            "ZR403",
+            "bare-except",
+            Category::Warning,
+            Severity::High,
+            Detector::BareExcept,
+        ),
+        rule(
+            "ZR404",
+            "mutable-default-argument",
+            Category::Warning,
+            Severity::High,
+            Detector::MutableDefaultArgument,
+        ),
+        rule(
+            "ZR405",
+            "print-debugging",
+            Category::Warning,
+            Severity::Low,
+            Detector::PrintDebugging,
+        ),
+        rule(
+            "ZR406",
+            "assert-production",
+            Category::Warning,
+            Severity::Medium,
+            Detector::AssertProduction,
+        ),
+        rule(
+            "ZR407",
+            "dangerous-eval-exec",
+            Category::Warning,
+            Severity::High,
+            Detector::DangerousEvalExec,
+        ),
+        rule(
+            "ZR408",
+            "silent-exception-swallowing",
+            Category::Warning,
+            Severity::High,
+            Detector::Precise(PreciseDetector::ExceptHandlerOnlyPass { bare_only: false }),
+        ),
+        rule(
+            "ZR409",
+            "global-mutable-state",
+            Category::Warning,
+            Severity::Medium,
+            Detector::Precise(PreciseDetector::GlobalMutableAssignment),
+        ),
+        rule(
+            "ZR410",
+            "ambiguous-none-return",
+            Category::Warning,
+            Severity::Medium,
+            Detector::Precise(PreciseDetector::AmbiguousNoneReturn),
+        ),
+        rule(
+            "ZR411",
+            "blanket-except",
+            Category::Warning,
+            Severity::High,
+            Detector::Precise(PreciseDetector::BlanketExceptException),
+        ),
+        rule(
+            "ZR412",
+            "query-in-loop",
+            Category::Warning,
+            Severity::Medium,
+            Detector::Precise(PreciseDetector::QueryInLoop),
+        ),
+        rule(
+            "ZR413",
+            "silent-fallback",
+            Category::Warning,
+            Severity::Medium,
+            Detector::Precise(PreciseDetector::SilentFallbackReturnNone),
+        ),
+        rule(
+            "ZR414",
+            "length-comparison",
+            Category::Warning,
+            Severity::Low,
+            Detector::LengthComparison,
+        ),
+        rule(
+            "ZR415",
+            "sort-for-top-k",
+            Category::Warning,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::SortForTopK),
+        ),
+        rule(
+            "ZR501",
+            "placeholder-generated-code",
+            Category::Ai,
+            Severity::Medium,
+            Detector::Precise(PreciseDetector::AiPlaceholderInComment),
+        ),
+        rule(
+            "ZR502",
+            "generated-comment-pattern",
+            Category::Ai,
+            Severity::Medium,
+            Detector::Precise(PreciseDetector::GeneratedCommentPattern),
+        ),
+        rule(
+            "ZR503",
+            "excessive-narration",
+            Category::Ai,
+            Severity::Low,
+            Detector::PatternComment(&["this function does", "in this step"]),
+        ),
+        rule(
+            "ZR504",
+            "generic-exception-message",
+            Category::Ai,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::GenericExceptionMessage),
+        ),
+        rule(
+            "ZR505",
+            "boilerplate-parameter-docs",
+            Category::Ai,
+            Severity::Low,
+            Detector::PatternAny(&[":param ", ":return:"]),
+        ),
+        rule(
+            "ZR506",
+            "empty-wrapper-function",
+            Category::Ai,
+            Severity::Low,
+            Detector::PatternAny(&["def ", "return "]),
+        ),
+        rule(
+            "ZR507",
+            "generated-dead-branch",
+            Category::Ai,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::GeneratedDeadBranch),
+        ),
+        rule(
+            "ZR508",
+            "defensive-overengineering",
+            Category::Ai,
+            Severity::Low,
+            Detector::Precise(PreciseDetector::DefensiveNamingSuffix),
+        ),
+        rule(
+            "ZR509",
+            "excessive-abstraction",
+            Category::Ai,
+            Severity::Low,
+            Detector::PatternAny(&["Abstract", "Base", "Interface"]),
+        ),
+        rule(
+            "ZR510",
+            "generic-utility-explosion",
+            Category::Ai,
+            Severity::Low,
+            Detector::PatternAny(&["utils", "helpers", "common"]),
+        ),
     ]
 }
-

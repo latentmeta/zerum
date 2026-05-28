@@ -112,9 +112,8 @@ fn zr409_function_local_mutable_is_clean() {
 
 #[test]
 fn zr408_typed_except_pass_triggers() {
-    let out = run_json(
-        "def f():\n    try:\n        return 1\n    except ValueError:\n        pass\n",
-    );
+    let out =
+        run_json("def f():\n    try:\n        return 1\n    except ValueError:\n        pass\n");
     assert!(has_id(&out, "ZR408"));
 }
 
@@ -126,9 +125,7 @@ fn zr402_bare_except_pass_triggers() {
 
 #[test]
 fn zr303_else_after_return_triggers() {
-    let out = run_json(
-        "def f(x):\n    if x:\n        return 1\n    else:\n        return 2\n",
-    );
+    let out = run_json("def f(x):\n    if x:\n        return 1\n    else:\n        return 2\n");
     assert!(has_id(&out, "ZR303"));
 }
 
@@ -146,9 +143,8 @@ fn zr311_identity_map_triggers() {
 
 #[test]
 fn zr411_except_exception_triggers() {
-    let out = run_json(
-        "def f():\n    try:\n        return 1\n    except Exception:\n        return 0\n",
-    );
+    let out =
+        run_json("def f():\n    try:\n        return 1\n    except Exception:\n        return 0\n");
     assert!(has_id(&out, "ZR411"));
 }
 
@@ -166,3 +162,67 @@ fn zr504_generic_exception_message_triggers() {
     assert!(has_id(&out, "ZR504"));
 }
 
+#[test]
+fn zr302_collapsible_nested_if_triggers() {
+    let out = run_json("def f(a, b):\n    if a:\n        if b:\n            return 1\n");
+    assert!(has_id(&out, "ZR302"));
+}
+
+#[test]
+fn zr315_sort_then_reverse_triggers() {
+    let out = run_json("def f(xs):\n    xs.sort()\n    xs.reverse()\n    return xs\n");
+    assert!(has_id(&out, "ZR315"));
+}
+
+#[test]
+fn zr301_duplicate_elif_body_triggers() {
+    let out = run_json(
+        "def f(x):\n    if x == 1:\n        return 'a'\n    elif x == 2:\n        return 'a'\n",
+    );
+    assert!(has_id(&out, "ZR301"));
+}
+
+#[test]
+fn zr314_string_join_in_loop_triggers() {
+    let out =
+        run_json("def f(parts):\n    s = ''\n    for p in parts:\n        s += p\n    return s\n");
+    assert!(has_id(&out, "ZR314"));
+}
+
+#[test]
+fn zr415_sorted_slice_triggers() {
+    let out = run_json("def f(xs):\n    return sorted(xs)[:3]\n");
+    assert!(has_id(&out, "ZR415"));
+}
+
+#[test]
+fn zr412_query_in_loop_triggers() {
+    let out = run_json(
+        "def f(rows, db):\n    out = []\n    for r in rows:\n        out.append(db.query(r))\n    return out\n",
+    );
+    assert!(has_id(&out, "ZR412"));
+}
+
+#[test]
+fn zr305_bool_if_expression_triggers() {
+    let out = run_json("def f(x):\n    return True if x else False\n");
+    assert!(has_id(&out, "ZR305"));
+}
+
+#[test]
+fn zr410_mixed_none_returns_triggers() {
+    let out = run_json("def f(flag):\n    if flag:\n        return\n    return None\n");
+    assert!(has_id(&out, "ZR410"));
+}
+
+#[test]
+fn zr312_reject_none_guard_triggers() {
+    let out = run_json("def f(x):\n    if x is not None:\n        return x\n");
+    assert!(has_id(&out, "ZR312"));
+}
+
+#[test]
+fn zr313_filter_none_comp_triggers() {
+    let out = run_json("def f(xs):\n    return [x for x in xs if x is not None]\n");
+    assert!(has_id(&out, "ZR313"));
+}

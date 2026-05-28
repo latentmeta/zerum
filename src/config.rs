@@ -1,5 +1,5 @@
-use anyhow::{Context, Result};
 use crate::core::Severity;
+use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
