@@ -3,23 +3,110 @@ source: tests/snapshot_tests.rs
 expression: "run_check_format(\"human\")"
 ---
 [low] ZR002 ./tests/fixtures/bad_project/messy.py:1:1 — function `too_many_args` has 7 arguments (max 5)
-  explanation: Functions with many parameters are difficult to call correctly and often indicate missing abstractions.
-  remediation: Group related parameters into a dataclass or config object, or split the function.
-[low] ZR006 ./tests/fixtures/bad_project/messy.py:2:5 — print() used for debugging
-  explanation: print() calls left in production code are noisy and usually indicate leftover debugging.
-  remediation: Use structured logging (logging module) or remove the statement before merging. Phase 1 only flags bare `print()` calls, not `builtins.print` or import aliases.
-[high] ZR005 ./tests/fixtures/bad_project/messy.py:5:5 — broad or bare except handler swallows errors
-  explanation: Catching Exception or using bare except hides bugs and makes failures silent.
-  remediation: Catch specific exception types and re-raise or log unexpected errors.
-[medium] ZR001 ./tests/fixtures/bad_project/messy.py:8:1 — function `branchy` has 13 branches (max 8)
-  explanation: Functions with many branches are harder to test and reason about. Each branch is a separate path through the function.
-  remediation: Extract helper functions, use early returns, or replace nested conditionals with polymorphism or lookup tables.
-[medium] ZR004 ./tests/fixtures/bad_project/messy.py:8:1 — function `branchy` has conditional nesting depth 9 (max 3)
-  explanation: Deeply nested conditionals increase cognitive load and hide the happy path.
-  remediation: Flatten with guard clauses, extract nested blocks into named functions, or restructure control flow.
-[high] ZR007 ./tests/fixtures/bad_project/messy.py:33:1 — function `bad_default` uses a mutable default argument
-  explanation: Mutable default arguments are shared across calls and cause subtle state bugs.
-  remediation: Use None as the default and initialize the mutable value inside the function body.
-[medium] ZR009 ./tests/fixtures/bad_project/messy.py:36:3 — suspicious AI-related placeholder: `TODO: AI`
-  explanation: Placeholder comments often indicate incomplete AI-assisted edits that were not finished or reviewed.
-  remediation: Replace placeholders with real implementation, tests, and documentation; remove marketing boilerplate.
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR007 ./tests/fixtures/bad_project/messy.py:1:1 — module is missing a top-level docstring
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR008 ./tests/fixtures/bad_project/messy.py:1:1 — function `too_many_args` is missing a docstring
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR101 ./tests/fixtures/bad_project/messy.py:1:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[medium] ZR203 ./tests/fixtures/bad_project/messy.py:1:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR506 ./tests/fixtures/bad_project/messy.py:1:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR102 ./tests/fixtures/bad_project/messy.py:1:8 — matches pattern `_`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR405 ./tests/fixtures/bad_project/messy.py:2:5 — print() used for debugging
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[high] ZR401 ./tests/fixtures/bad_project/messy.py:5:5 — broad except handler catches Exception/BaseException
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[high] ZR408 ./tests/fixtures/bad_project/messy.py:5:5 — broad except handler only contains pass
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[high] ZR411 ./tests/fixtures/bad_project/messy.py:5:5 — except Exception catches nearly all errors; prefer specific exceptions
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[medium] ZR003 ./tests/fixtures/bad_project/messy.py:8:1 — function `branchy` has conditional nesting depth 9 (max 3)
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR008 ./tests/fixtures/bad_project/messy.py:8:1 — function `branchy` is missing a docstring
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR101 ./tests/fixtures/bad_project/messy.py:8:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[medium] ZR203 ./tests/fixtures/bad_project/messy.py:8:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR506 ./tests/fixtures/bad_project/messy.py:8:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR006 ./tests/fixtures/bad_project/messy.py:15:14 — magic numeric literal `3`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR006 ./tests/fixtures/bad_project/messy.py:17:14 — magic numeric literal `4`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR006 ./tests/fixtures/bad_project/messy.py:19:14 — magic numeric literal `5`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR006 ./tests/fixtures/bad_project/messy.py:21:14 — magic numeric literal `6`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR301 ./tests/fixtures/bad_project/messy.py:23:5 — if and elif branches have identical bodies
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR006 ./tests/fixtures/bad_project/messy.py:23:14 — magic numeric literal `7`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR006 ./tests/fixtures/bad_project/messy.py:25:14 — magic numeric literal `8`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR006 ./tests/fixtures/bad_project/messy.py:28:24 — magic numeric literal `3`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR302 ./tests/fixtures/bad_project/messy.py:29:13 — nested if without else can be collapsed with `and`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR008 ./tests/fixtures/bad_project/messy.py:33:1 — function `bad_default` is missing a docstring
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR101 ./tests/fixtures/bad_project/messy.py:33:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[medium] ZR203 ./tests/fixtures/bad_project/messy.py:33:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR310 ./tests/fixtures/bad_project/messy.py:33:1 — function `bad_default` only returns its single argument
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[high] ZR404 ./tests/fixtures/bad_project/messy.py:33:1 — function `bad_default` uses a mutable default argument
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR506 ./tests/fixtures/bad_project/messy.py:33:1 — matches pattern `def `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR102 ./tests/fixtures/bad_project/messy.py:33:8 — matches pattern `_`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR109 ./tests/fixtures/bad_project/messy.py:33:23 — matches pattern `[]`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR110 ./tests/fixtures/bad_project/messy.py:34:5 — matches pattern `return`
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[low] ZR506 ./tests/fixtures/bad_project/messy.py:34:5 — matches pattern `return `
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.
+[medium] ZR501 ./tests/fixtures/bad_project/messy.py:36:1 — AI placeholder marker found in comment
+  explanation: This finding highlights maintainability risk in deterministic analysis.
+  remediation: Refactor for clarity and consistency with project conventions.

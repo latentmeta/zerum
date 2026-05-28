@@ -10,12 +10,19 @@
 - [x] Exit codes 0 / 1 / 2; `review` exits 0 on findings
 - [x] Tutorial chapters 00–03
 
-## Phase 2 — Configuration and external tools
+## v0.2.0 foundations (complete)
+
+- [x] ~75-rule deterministic catalog (ZR001–ZR510)
+- [x] `SourceModel`, `CheckMetadata`, severity override
+- [x] CLI: `check`, `explain`, `list-checks`, `init`; human + JSON only
+- [x] Tutorial chapters 04–05
+- [x] AST-precise detector module (`catalog_detectors`)
+
+## Phase 2 — External tools (future)
 
 - [ ] Per-check schema validation in `zerum.toml`
 - [ ] `ExternalChecker` trait + Ruff JSON adapter
-- [ ] `zerum list-checkers` reports tool availability
-- [ ] Tutorial chapters 04–07
+- [ ] Optional SARIF / additional reporters
 
 ## Phase 3 — Architecture and reporters
 

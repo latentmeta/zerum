@@ -40,8 +40,8 @@ impl DeterministicAnalyzer {
     }
 
     pub fn analyze_file(&self, path: &Path, config: &Config) -> Result<Vec<Issue>> {
-        let source = std::fs::read_to_string(path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let source =
+            std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
         let parsed = self
             .parser
             .parse_file(&source, path)
@@ -55,17 +55,18 @@ impl DeterministicAnalyzer {
         let mut issues = Vec::new();
         for check in self.registry.iter() {
             if config.is_check_enabled(check.id()) {
-                issues.extend(check.run(&ctx));
+                let severity_override = config.check_config(check.id()).severity;
+                let mut check_issues = check.run(&ctx);
+                if let Some(severity) = severity_override {
+                    for issue in &mut check_issues {
+                        issue.severity = severity;
+                    }
+                }
+                issues.extend(check_issues);
             }
         }
         issues.sort_by(|a, b| {
-            (
-                &a.file,
-                a.line,
-                a.column,
-                &a.id,
-                &a.message,
-            )
+            (&a.file, a.line, a.column, &a.id, &a.message)
                 .cmp(&(&b.file, b.line, b.column, &b.id, &b.message))
         });
         Ok(issues)
@@ -86,13 +87,7 @@ impl DeterministicAnalyzer {
             }
         }
         result.issues.sort_by(|a, b| {
-            (
-                &a.file,
-                a.line,
-                a.column,
-                &a.id,
-                &a.message,
-            )
+            (&a.file, a.line, a.column, &a.id, &a.message)
                 .cmp(&(&b.file, b.line, b.column, &b.id, &b.message))
         });
         result

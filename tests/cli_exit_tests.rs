@@ -35,23 +35,3 @@ fn issues_found_exit_issues() {
 
     assert_eq!(output.status.code(), Some(i32::from(EXIT_ISSUES)));
 }
-
-#[test]
-fn review_exits_zero_when_issues_found() {
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/bad_project");
-    let output = Command::new(zerum_bin())
-        .args(["review", path])
-        .output()
-        .expect("run zerum review");
-
-    assert!(
-        output.status.success(),
-        "review should exit 0 with findings; stdout: {}",
-        String::from_utf8_lossy(&output.stdout)
-    );
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(
-        stdout.contains("ZR"),
-        "expected issue output, got: {stdout}"
-    );
-}

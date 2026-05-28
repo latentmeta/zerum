@@ -1,10 +1,12 @@
 mod python;
+mod source_model;
 
 use anyhow::Result;
 use rustpython_ast::Mod;
 use std::path::{Path, PathBuf};
 
 pub use python::RustPythonParser;
+pub use source_model::{ClassView, CommentView, FunctionView, ImportView, SourceModel};
 
 pub trait PythonParser: Send + Sync {
     fn parse_file(&self, source: &str, path: &Path) -> Result<ParsedFile>;
@@ -17,6 +19,12 @@ pub struct ParsedFile {
     pub module: Mod,
 }
 
+impl ParsedFile {
+    pub fn source_model(&self) -> SourceModel<'_> {
+        SourceModel::from_parsed(self)
+    }
+}
+
 /// Map a byte offset to 1-based line and column.
 ///
 /// Column is a byte offset within the line (not grapheme-aware).
@@ -25,9 +33,7 @@ pub fn line_col(source: &str, offset: u32) -> (usize, usize) {
     let offset = floor_byte_offset(source, offset as usize);
     let before = &source[..offset];
     let line = before.matches('\n').count() + 1;
-    let column = before
-        .rfind('\n')
-        .map_or(offset + 1, |idx| offset - idx);
+    let column = before.rfind('\n').map_or(offset + 1, |idx| offset - idx);
     (line, column)
 }
 

@@ -1,11 +1,4 @@
-use crate::checks::{
-    ai::placeholder_comment::AiPlaceholderComment,
-    architecture::forbidden_imports::ForbiddenArchitectureImport,
-    design::nested_conditionals::NestedConditionals,
-    readability::{long_function::LongFunction, too_many_arguments::TooManyArguments},
-    warning::{broad_except::BroadExcept, mutable_default::MutableDefaultArgument, print_debugging::PrintDebugging},
-    Zr001TooManyBranches, Zr008GodClass,
-};
+use crate::checks::catalog::build_catalog;
 use crate::core::Check;
 
 pub struct CheckRegistry {
@@ -20,18 +13,7 @@ impl Default for CheckRegistry {
 
 impl CheckRegistry {
     pub fn new() -> Self {
-        let checks: Vec<Box<dyn Check>> = vec![
-            Box::new(Zr001TooManyBranches),
-            Box::new(TooManyArguments),
-            Box::new(LongFunction),
-            Box::new(NestedConditionals),
-            Box::new(BroadExcept),
-            Box::new(PrintDebugging),
-            Box::new(MutableDefaultArgument),
-            Box::new(Zr008GodClass),
-            Box::new(AiPlaceholderComment),
-            Box::new(ForbiddenArchitectureImport),
-        ];
+        let checks: Vec<Box<dyn Check>> = build_catalog();
         Self { checks }
     }
 
@@ -57,11 +39,24 @@ mod tests {
         let registry = CheckRegistry::new();
         let mut ids: Vec<_> = registry.iter().map(|c| c.id()).collect();
         ids.sort_unstable();
-        assert_eq!(ids.len(), 10);
+        assert!(ids.len() >= 75);
         for id in &ids {
             assert!(id.starts_with("ZR"));
             assert_eq!(id.len(), 5);
         }
         assert_eq!(ids.windows(2).filter(|w| w[0] == w[1]).count(), 0);
+    }
+
+    #[test]
+    fn registry_metadata_is_complete_and_aligned() {
+        let registry = CheckRegistry::new();
+        for check in registry.iter() {
+            let meta = check.metadata();
+            assert_eq!(meta.id, check.id());
+            assert_eq!(meta.name, check.name());
+            assert_eq!(meta.category, check.category());
+            assert_eq!(meta.severity, check.severity());
+            assert!(!meta.examples.trim().is_empty());
+        }
     }
 }

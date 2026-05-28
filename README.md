@@ -1,14 +1,18 @@
 # Zerum
 
-**Zerum** is a Rust-native, deterministic-first code governance platform for Python.
+**Zerum** is a Rust-native, deterministic-first code governance tool for Python — *Credo for Python*.
 
-It combines:
+v0.2.0 delivers roughly **75 native checks** (ZR001–ZR510) with explainable findings, `human` and `json` output, and no dependency on external linters or LLMs.
 
-1. **Native deterministic checks** (ZR001–ZR010) — complexity, design, warnings, AI placeholders, architecture imports
-2. **External checker orchestration** (planned) — Ruff, Mypy, Bandit, and others
-3. **Auditable LLM-assisted review** (planned, opt-in only)
+Zerum is **not** a Ruff replacement. It focuses on maintainability, consistency, architecture boundaries, and deterministic AI-slop patterns.
 
-Zerum is **not** a Ruff clone. It focuses on explainable governance, maintainability, and architectural boundaries.
+## Install
+
+```bash
+cargo install zerum
+```
+
+Requires Rust **1.70+** (see `rust-version` in `Cargo.toml`).
 
 ## Quick start
 
@@ -16,12 +20,11 @@ Zerum is **not** a Ruff clone. It focuses on explainable governance, maintainabi
 cargo build
 cargo run -- list-checks
 cargo run -- check path/to/python/project
-cargo run -- review path/to/python/project   # same analysis, exits 0 when issues exist
 cargo run -- explain ZR001
 cargo run -- init
 ```
 
-`zerum init` writes `zerum.toml` from `zerum.toml.example`. You can also copy the example file manually.
+`zerum init` writes `zerum.toml` from `zerum.toml.example`.
 
 ## Exit codes (`check`)
 
@@ -31,31 +34,27 @@ cargo run -- init
 | 1 | Issues found |
 | 2 | Operational error (missing path, parse/read failure on all files, CLI error) |
 
-`zerum review` uses the same analysis and reporters but exits **0** when issues are found (only **2** on operational failure).
+## Rule categories (v0.2.0)
 
-## Checks (v0.1.0)
+| Range | Category |
+|-------|----------|
+| ZR001–015 | Readability |
+| ZR101–110 | Consistency |
+| ZR201–210 | Design |
+| ZR301–315 | Refactor |
+| ZR401–415 | Warning |
+| ZR501–510 | AI (deterministic) |
 
-| ID | Name |
-|----|------|
-| ZR001 | too-many-branches |
-| ZR002 | too-many-arguments |
-| ZR003 | long-function |
-| ZR004 | nested-conditionals |
-| ZR005 | broad-except |
-| ZR006 | print-debugging |
-| ZR007 | mutable-default-argument |
-| ZR008 | god-class |
-| ZR009 | ai-generated-placeholder-comment |
-| ZR010 | forbidden-architecture-import |
+Run `zerum list-checks` for the full catalog. Use `zerum explain ZR###` for rationale, false positives, tradeoffs, and remediation.
 
 ## Output formats
 
 ```bash
 cargo run -- check . --format human    # default
 cargo run -- check . --format json
-cargo run -- check . --format sarif
-cargo run -- check . --format markdown
 ```
+
+SARIF, Markdown, `review`, and external checker orchestration are **out of scope** for v0.2.0.
 
 ## Tutorial
 
@@ -65,20 +64,26 @@ Educational material lives under [`docs/tutorial/`](docs/tutorial/):
 - [01 — Static analysis basics](docs/tutorial/01-static-analysis-basics.md)
 - [02 — Parsing Python in Rust](docs/tutorial/02-parsing-python-in-rust.md)
 - [03 — Building a rule engine](docs/tutorial/03-building-a-rule-engine.md)
+- [04 — Writing checks](docs/tutorial/04-writing-checks.md)
+- [05 — Explain mode and configuration](docs/tutorial/05-explain-mode-and-configuration.md)
 - [12 — Roadmap](docs/tutorial/12-roadmap.md)
 
 ## Development
 
+CI runs lint, tests, coverage, and regression suites on push/PR (see `.github/workflows/ci.yml`).
+
 ```bash
 cargo test
-cargo run -- check tests/fixtures/bad_project        # exits 1
-cargo run -- check tests/fixtures/arch_violation     # ZR010, exits 1
-cargo run -- check tests/fixtures/simple_project     # exits 0
+cargo clippy -- -D warnings
+cargo run -- check tests/fixtures/bad_project
+cargo run -- check tests/fixtures/arch_violation
 ```
+
+Category fixtures: `consistency_project`, `refactor_project`, `design_project`, `ai_slop_project`, `warning_project`.
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for release history. Full v0.1.0 notes: [docs/RELEASE_v0.1.0.md](docs/RELEASE_v0.1.0.md).
+See [CHANGELOG.md](CHANGELOG.md). Release notes: [v0.1.0](docs/RELEASE_v0.1.0.md) · [v0.2.0](docs/RELEASE_v0.2.0.md). Publishing: [docs/RELEASING.md](docs/RELEASING.md).
 
 ## License
 

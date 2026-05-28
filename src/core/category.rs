@@ -5,6 +5,7 @@ use std::fmt;
 #[serde(rename_all = "lowercase")]
 pub enum Category {
     Readability,
+    Consistency,
     Refactor,
     Design,
     Warning,
@@ -19,6 +20,7 @@ impl fmt::Display for Category {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Category::Readability => write!(f, "readability"),
+            Category::Consistency => write!(f, "consistency"),
             Category::Refactor => write!(f, "refactor"),
             Category::Design => write!(f, "design"),
             Category::Warning => write!(f, "warning"),

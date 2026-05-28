@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::path::PathBuf;
 use zerum::core::{Category, ConfidenceKind, Issue, Severity};
-use zerum::reporters::{ReportKind, render};
+use zerum::reporters::{render, ReportKind};
 
 fn sample_issue() -> Issue {
     Issue {
@@ -27,8 +27,7 @@ fn json_reporter_emits_issue_id() {
 }
 
 #[test]
-fn sarif_reporter_emits_version() {
-    let out = render(ReportKind::Sarif, &[sample_issue()]).unwrap();
-    assert!(out.contains("\"version\": \"2.1.0\""));
+fn human_reporter_emits_issue_id() {
+    let out = render(ReportKind::Human, &[sample_issue()]).unwrap();
     assert!(out.contains("ZR001"));
 }

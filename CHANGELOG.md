@@ -7,12 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned (Phase 2)
+### Planned (post–v0.2.0)
 
 - `ExternalChecker` trait and Ruff JSON adapter
 - `zerum.toml` schema validation and profile inheritance
-- `zerum list-checkers` probing installed tools
-- Tutorial chapters 04–07
+- Per-rule curated explain text and additional AST-precise detectors
+
+## [0.2.0] - 2026-05-27
+
+Deterministic foundations release — ~75 native checks, catalog registry, SourceModel, human/json-only CLI.
+
+### Added
+
+- **Catalog:** `build_catalog()` with ZR001–ZR015, ZR101–ZR110, ZR201–ZR210, ZR301–ZR315, ZR401–ZR415, ZR501–ZR510
+- **AST detectors:** `catalog_detectors` for TODO context, magic numbers, `len` compares, assert/eval/exec, except/pass patterns, identity map, else-after-return, AI placeholders, and more
+- **SourceModel:** semantic views (functions, classes, imports, comments) over `ParsedFile`
+- **CheckMetadata:** false positives, tradeoffs, examples on every rule
+- **Config:** per-check `severity` override
+- **Tests:** `rule_precision_tests`, `catalog_fixture_tests`, category fixtures, config override tests
+- **Docs:** tutorial chapters 04–05, `docs/RELEASE_v0.2.0.md`, milestone review
+
+### Changed
+
+- Registry driven by catalog instead of ten hand-written checks
+- CLI limited to `check`, `explain`, `list-checks`, `init`
+- Reporters limited to `human` and `json`
+- Check id semantics realigned (e.g. ZR001 is `long-function` in v0.2.0)
+
+### Removed
+
+- `zerum review`, `list-checkers`, `--with-llm` (stubs removed from user-facing path)
+- SARIF and Markdown reporters from CLI
+
+### Known limitations
+
+- Many consistency/refactor rules remain pattern-based heuristics
+- Broad findings on minimal fixtures; tune `zerum.toml` before strict CI gates
+- Architecture rule ZR207 requires explicit `[[checks.ZR207.rules]]` configuration
 
 ## [0.1.0] - 2026-05-25
 
@@ -58,5 +89,6 @@ First public release — Phase 1 foundation. Deterministic Python governance in 
 - `--with-llm` is accepted but not implemented.
 - `integrations/`, `analyzers/external.rs`, `analyzers/llm.rs`, and `llm/` are stubs only.
 
-[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/latentmeta/zerum/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/latentmeta/zerum/releases/tag/v0.1.0

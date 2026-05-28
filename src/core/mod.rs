@@ -7,7 +7,7 @@ pub mod registry;
 pub mod severity;
 
 pub use category::Category;
-pub use check::Check;
+pub use check::{Check, CheckMetadata};
 pub use context::CheckContext;
 pub use issue::{ConfidenceKind, Issue, IssueBuilder};
 pub use registry::CheckRegistry;

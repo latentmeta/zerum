@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    name: Build ${{ matrix.os }} binary
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Package artifact (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          OS_NAME="$(echo "${RUNNER_OS}" | tr '[:upper:]' '[:lower:]')"
+          ARCH_NAME="$(echo "${RUNNER_ARCH}" | tr '[:upper:]' '[:lower:]')"
+          ASSET_NAME="zerum-${GITHUB_REF_NAME}-${OS_NAME}-${ARCH_NAME}.tar.gz"
+          tar -czf "dist/${ASSET_NAME}" -C target/release zerum
+
+      - name: Package artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -Path dist -ItemType Directory -Force | Out-Null
+          $osName = "${env:RUNNER_OS}".ToLower()
+          $archName = "${env:RUNNER_ARCH}".ToLower()
+          $assetName = "zerum-${env:GITHUB_REF_NAME}-${osName}-${archName}.zip"
+          Compress-Archive -Path "target/release/zerum.exe" -DestinationPath "dist/$assetName" -Force
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zerum-${{ runner.os }}-${{ runner.arch }}
+          path: dist/*
+
+      - name: Attach artifacts to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
