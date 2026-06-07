@@ -10,11 +10,16 @@ Use this after [RELEASING.md](RELEASING.md) publish steps.
 ## Tag and binaries
 
 ```bash
-git tag -a v0.2.0 -m "Zerum v0.2.0 — deterministic foundations"
+# Tag must be on the commit that contains version 0.2.0 in Cargo.toml (usually upstream/main)
+git fetch upstream
+git show upstream/main:Cargo.toml | grep '^version'
+git tag -a v0.2.0 -m "Zerum v0.2.0 — deterministic foundations" upstream/main
 git push upstream v0.2.0
 ```
 
-- [ ] [release.yml](../.github/workflows/release.yml) completed on GitHub Actions
+If you already pushed a bad tag, see [RELEASING.md — Tag push did not create a release](RELEASING.md#tag-push-did-not-create-a-release).
+
+- [ ] [release.yml](../.github/workflows/release.yml) completed on GitHub Actions (`gh run list --repo latentmeta/zerum --workflow=Release`)
 - [ ] GitHub Release `v0.2.0` has linux/macos/windows artifacts
 - [ ] Release notes body copied from [RELEASE_v0.2.0.md](RELEASE_v0.2.0.md)
 

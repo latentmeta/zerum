@@ -5,7 +5,7 @@
 
 **Zerum** is a Rust-native, deterministic-first code governance tool for Python — *Credo for Python*.
 
-v0.2.0 delivers roughly **75 native checks** (ZR001–ZR510) with explainable findings, `human` and `json` output, and no dependency on external linters or LLMs.
+**v0.4.0** ships roughly **75 native checks** (ZR001–ZR510) with explainable findings, default/strict profiles, optional Ruff orchestration, and `human` / `json` output. No LLM dependency in the core tool.
 
 Zerum is **not** a Ruff replacement. It focuses on maintainability, consistency, architecture boundaries, and deterministic AI-slop patterns.
 
@@ -37,7 +37,7 @@ cargo run -- init
 | 1 | Issues found |
 | 2 | Operational error (missing path, parse/read failure on all files, CLI error) |
 
-## Rule categories (v0.2.0)
+## Rule categories
 
 | Range | Category |
 |-------|----------|
@@ -88,9 +88,23 @@ cargo run -- check tests/fixtures/arch_violation
 
 Category fixtures: `consistency_project`, `refactor_project`, `design_project`, `ai_slop_project`, `warning_project`.
 
+## Future releases
+
+Planned direction (not committed dates). See [tutorial roadmap](docs/tutorial/12-roadmap.md) and [CHANGELOG](CHANGELOG.md) for detail.
+
+| Version | Theme | Highlights |
+|---------|--------|------------|
+| **v0.4.x** | Patch hardening | More AST-precise detectors; full-catalog explain text; per-rule test coverage |
+| **v0.5.0** | Rule depth | Convert remaining design/readability heuristics; naming policy config |
+| **v0.6.0** | External tools | Bandit/Semgrep/import-linter adapters; merged SARIF reports |
+| **v0.7.0** | DX & schema | Published `zerum.toml` JSON Schema; `zerum init` profiles for teams; docs.rs tutorial parity |
+| **v0.8.0+** | LLM layer (RFC) | Opt-in `--with-llm`, provider trait, redaction, audit log — separate security review before default packaging |
+
+Out of scope until explicitly designed: autofix, plugins/WASM, dynamic rule loading.
+
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md). Release notes: [v0.1.0](docs/RELEASE_v0.1.0.md) · [v0.2.0](docs/RELEASE_v0.2.0.md). Publishing: [docs/RELEASING.md](docs/RELEASING.md).
+See [CHANGELOG.md](CHANGELOG.md). Release notes: [v0.1.0](docs/RELEASE_v0.1.0.md) · [v0.2.0](docs/RELEASE_v0.2.0.md) · [v0.4.0](docs/RELEASE_v0.4.0.md). Publishing: [docs/RELEASING.md](docs/RELEASING.md) · [v0.4.0 checklist](docs/DISTRO_CLOSURE_v0.4.0.md).
 
 ## License
 

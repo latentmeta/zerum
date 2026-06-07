@@ -36,6 +36,8 @@ Post–v0.2.0 hardening: default profile, AST detectors, config profiles, extern
 - CI coverage job fails below **70%** line coverage
 - `zerum.toml.example` documents default vs strict and external checkers
 
+Release notes: [docs/RELEASE_v0.4.0.md](docs/RELEASE_v0.4.0.md)
+
 ## [0.2.0] - 2026-05-27
 
 Deterministic foundations release — ~75 native checks, catalog registry, SourceModel, human/json-only CLI.
