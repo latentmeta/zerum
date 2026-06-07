@@ -1263,9 +1263,9 @@ fn detect_repeated_literal(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> 
                 if s.len() >= 4 {
                     let entry = counts.entry(s.clone()).or_insert(0);
                     *entry += 1;
-                    first_line.entry(s.clone()).or_insert_with(|| {
-                        line_col(&ctx.parsed.source, expr.start().into()).0
-                    });
+                    first_line
+                        .entry(s.clone())
+                        .or_insert_with(|| line_col(&ctx.parsed.source, expr.start().into()).0);
                 }
             }
         }

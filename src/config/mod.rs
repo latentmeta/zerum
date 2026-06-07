@@ -130,16 +130,12 @@ impl Config {
         let valid_severities = ["low", "medium", "high", "critical"];
         for (id, cfg) in &self.checks {
             if !id.starts_with("ZR") || id.len() != 5 {
-                bail!(
-                    "unknown check key `{id}` in zerum.toml: expected catalog id like ZR001"
-                );
+                bail!("unknown check key `{id}` in zerum.toml: expected catalog id like ZR001");
             }
             if let Some(sev) = &cfg.severity {
                 let s = sev.to_string().to_ascii_lowercase();
                 if !valid_severities.contains(&s.as_str()) {
-                    bail!(
-                        "invalid severity `{s}` for {id}: use low, medium, high, or critical"
-                    );
+                    bail!("invalid severity `{s}` for {id}: use low, medium, high, or critical");
                 }
             }
         }
@@ -393,7 +389,11 @@ mod tests {
         let project = outer.path().join("myapp");
         fs::create_dir_all(project.join("src")).unwrap();
         fs::write(project.join("pyproject.toml"), "[project]\nname = \"x\"\n").unwrap();
-        fs::write(outer.path().join("zerum.toml"), "[profile]\nname = \"default\"\n").unwrap();
+        fs::write(
+            outer.path().join("zerum.toml"),
+            "[profile]\nname = \"default\"\n",
+        )
+        .unwrap();
 
         let config = Config::discover(&project.join("src")).unwrap();
         assert!(config.checks.is_empty());
