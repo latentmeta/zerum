@@ -1,6 +1,6 @@
 # Zerum v0.4.0 — Profiles, orchestration, and trust defaults
 
-**Release date:** 2026-05-28  
+**Release date:** 2026-06-07  
 **Repository:** [github.com/latentmeta/zerum](https://github.com/latentmeta/zerum)  
 **License:** MIT
 
@@ -169,6 +169,6 @@ Explicitly enable rules in `zerum.toml` if you relied on heuristic ids that are 
 
 ## Full changelog
 
-See [CHANGELOG.md](../CHANGELOG.md#040---2026-05-28).
+See [CHANGELOG.md](../CHANGELOG.md#040---2026-06-07).
 
 **Compare:** [v0.2.0...v0.4.0](https://github.com/latentmeta/zerum/compare/v0.2.0...v0.4.0)

@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opt-in LLM layer (`--with-llm`)
 - Autofix pipeline
 
-## [0.4.0] - 2026-05-28
+## [0.4.0] - 2026-06-07
 
 Post–v0.2.0 hardening: default profile, AST detectors, config profiles, external Ruff orchestration.
 
