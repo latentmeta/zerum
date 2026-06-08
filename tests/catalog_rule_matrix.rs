@@ -90,7 +90,10 @@ fn curated_rules_have_non_generic_explanation() {
             .output()
             .unwrap();
         let text = String::from_utf8_lossy(&output.stdout);
-        assert!(!text.contains("maintainability risk in deterministic analysis"), "{id}");
+        assert!(
+            !text.contains("maintainability risk in deterministic analysis"),
+            "{id}"
+        );
     }
 }
 
@@ -109,12 +112,7 @@ fn trigger_snippets_fire_under_strict_profile() {
 #[test]
 fn clean_module_passes_default_profile() {
     let output = Command::new(zerum_bin())
-        .args([
-            "check",
-            "tests/fixtures/clean_project",
-            "--format",
-            "json",
-        ])
+        .args(["check", "tests/fixtures/clean_project", "--format", "json"])
         .output()
         .expect("run check");
     assert_eq!(output.status.code(), Some(0), "{:?}", output.stderr);

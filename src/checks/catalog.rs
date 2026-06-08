@@ -648,15 +648,18 @@ fn docs_for(id: &str) -> Option<RuleDocs> {
         },
         "ZR003" => RuleDocs {
             explanation: "Deep nesting obscures control flow and error handling paths.",
-            remediation: "Use guard clauses, early returns, or extract nested blocks into functions.",
-            false_positives: "State machines or parser combinator style code with intentional depth.",
+            remediation:
+                "Use guard clauses, early returns, or extract nested blocks into functions.",
+            false_positives:
+                "State machines or parser combinator style code with intentional depth.",
             tradeoffs: "Flattening can scatter related logic if over-applied.",
             examples: "Four levels of if/for inside one function.",
         },
         "ZR005" => RuleDocs {
             explanation: "Very short names reduce readability for maintainers.",
             remediation: "Rename to descriptive snake_case identifiers.",
-            false_positives: "Loop indices, math conventions (x, y), or well-known abbreviations in scope.",
+            false_positives:
+                "Loop indices, math conventions (x, y), or well-known abbreviations in scope.",
             tradeoffs: "Verbose names help newcomers but can clutter tight algorithms.",
             examples: "`def f(a, b):` where names do not convey intent.",
         },
@@ -669,8 +672,10 @@ fn docs_for(id: &str) -> Option<RuleDocs> {
         },
         "ZR207" => RuleDocs {
             explanation: "Layer violations let infrastructure concerns leak into domain code.",
-            remediation: "Move imports behind interfaces or invert dependencies per your architecture rules.",
-            false_positives: "Monorepos with unconventional folder layouts; adjust `[[checks.ZR207.rules]]`.",
+            remediation:
+                "Move imports behind interfaces or invert dependencies per your architecture rules.",
+            false_positives:
+                "Monorepos with unconventional folder layouts; adjust `[[checks.ZR207.rules]]`.",
             tradeoffs: "Strict layering improves testability but requires upfront boundary design.",
             examples: "Domain module importing `app.infrastructure.db`.",
         },
@@ -717,10 +722,12 @@ fn docs_for(id: &str) -> Option<RuleDocs> {
             examples: "`eval(user_input)`",
         },
         "ZR414" => RuleDocs {
-            explanation: "Comparing `len(x) > 0` is less idiomatic than truthiness for collections.",
+            explanation:
+                "Comparing `len(x) > 0` is less idiomatic than truthiness for collections.",
             remediation: "Use `if xs:` or `if not xs:` when semantics match.",
             false_positives: "Cases where falsy values differ from empty (custom containers).",
-            tradeoffs: "Truthiness is shorter; length checks can be clearer for non-bool emptiness.",
+            tradeoffs:
+                "Truthiness is shorter; length checks can be clearer for non-bool emptiness.",
             examples: "`if len(items) > 0:`",
         },
         "ZR501" => RuleDocs {

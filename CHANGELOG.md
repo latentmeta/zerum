@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opt-in LLM layer (`--with-llm`)
 - Autofix pipeline
 
-## [0.4.0] - 2026-05-28
+## [0.4.0] - 2026-06-07
 
 Post–v0.2.0 hardening: default profile, AST detectors, config profiles, external Ruff orchestration.
 
@@ -35,6 +35,8 @@ Post–v0.2.0 hardening: default profile, AST detectors, config profiles, extern
 - Removed unwired legacy check modules under `src/checks/{readability,design,...}/`
 - CI coverage job fails below **70%** line coverage
 - `zerum.toml.example` documents default vs strict and external checkers
+
+Release notes: [docs/RELEASE_v0.4.0.md](docs/RELEASE_v0.4.0.md)
 
 ## [0.2.0] - 2026-05-27
 

@@ -57,7 +57,5 @@ pub fn builtin_checkers() -> Vec<Box<dyn ExternalChecker>> {
 }
 
 pub fn find_checker(id: &str) -> Option<Box<dyn ExternalChecker>> {
-    builtin_checkers()
-        .into_iter()
-        .find(|c| c.id() == id)
+    builtin_checkers().into_iter().find(|c| c.id() == id)
 }
