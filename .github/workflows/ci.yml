@@ -96,3 +96,47 @@ jobs:
 
       - name: Run catalog rule matrix tests
         run: cargo test --test catalog_rule_matrix
+
+  packaging:
+    name: Maturin packaging smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build wheel + sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          args: --release --locked --out dist --sdist --find-interpreter
+          sccache: "true"
+          manylinux: "2_28"
+
+      - name: Install wheel and smoke-test CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv-packaging
+          source .venv-packaging/bin/activate
+          pip install --upgrade pip
+          pip install dist/zerum-*.whl
+          zerum --help
+          zerum list-checks | head
+          zerum check tests/fixtures/clean_project
+          # bad_project must exit 1 (issues found)
+          set +e
+          zerum check tests/fixtures/bad_project
+          status=$?
+          set -e
+          test "$status" -eq 1
+
+      - name: Upload packaging artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaging-dist
+          path: dist/*
+          retention-days: 7

@@ -1,0 +1,158 @@
+# PyPI Release (maturin)
+#
+# Builds platform wheels + sdist, attaches them to the GitHub Release, and
+# publishes to PyPI via Trusted Publishing (OIDC). No long-lived API tokens.
+#
+# Trigger: push of annotated tag `v*` (same as the native binary Release workflow).
+#
+# One-time PyPI setup:
+# 1. Create the project on https://pypi.org (or publish once manually).
+# 2. Project settings → Publishing → Add a trusted publisher:
+#    - Owner: latentmeta
+#    - Repository: zerum
+#    - Workflow: pypi-release.yml
+#    - Environment: pypi
+# 3. In GitHub: Settings → Environments → create `pypi` (optional protection rules).
+# See docs/packaging/CI_CD.md for details.
+
+name: PyPI Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-wheels:
+    name: Wheel (${{ matrix.os }} / ${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux manylinux (x86_64 + aarch64)
+          - os: ubuntu-latest
+            target: x86_64
+            manylinux: "2_28"
+          - os: ubuntu-latest
+            target: aarch64
+            manylinux: "2_28"
+          # macOS Intel + Apple Silicon
+          - os: macos-13
+            target: x86_64
+            manylinux: ""
+          - os: macos-14
+            target: aarch64
+            manylinux: ""
+          # Windows
+          - os: windows-latest
+            target: x64
+            manylinux: ""
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --locked --out dist --find-interpreter
+          sccache: "true"
+          manylinux: ${{ matrix.manylinux != '' && matrix.manylinux || 'auto' }}
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-${{ matrix.target }}
+          path: dist
+
+  build-sdist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-sdist
+          path: dist
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [build-wheels, build-sdist]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -lah dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true
+
+      - name: Attach wheels to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          fail_on_unmatched_files: false
+
+  verify-install:
+    name: Verify pip install
+    needs: [publish-pypi]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install from PyPI
+        run: |
+          # Index may lag a few seconds after publish
+          for i in 1 2 3 4 5; do
+            pip install --upgrade "zerum==${GITHUB_REF_NAME#v}" && break
+            sleep 15
+          done
+
+      - name: Smoke test CLI
+        run: |
+          zerum --help
+          zerum list-checks | head
+          zerum check tests/fixtures/clean_project
+          set +e
+          zerum check tests/fixtures/bad_project
+          status=$?
+          set -e
+          test "$status" -eq 1

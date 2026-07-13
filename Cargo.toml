@@ -48,3 +48,11 @@ sarif = []
 insta = { version = "1", features = ["json"] }
 pretty_assertions = "1"
 tempfile = "3"
+
+# Release profile for crates.io installs and PyPI wheels (maturin uses --release).
+# Smaller, faster binaries; no unwind tables needed for a CLI.
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
