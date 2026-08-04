@@ -6,7 +6,7 @@
 
 **Zerum** is deterministic code governance for Python — *Credo for Python*.
 
-**v0.4.1** ships ~**75** native checks (ZR001–ZR510), explainable findings, quiet **default** / full **strict** profiles, optional **Ruff** orchestration, and `human` / `json` output. Install via **PyPI**, **Homebrew**, **crates.io**, or GitHub Releases. No LLM in the core path.
+**v0.4.2** ships ~**75** native checks (ZR001–ZR510), explainable findings, quiet **default** / full **strict** profiles, optional **Ruff** orchestration, and `human` / `json` output. Install via **PyPI**, **Homebrew**, **crates.io**, or GitHub Releases. No LLM in the core path.
 
 Zerum is **not** a Ruff replacement. It focuses on maintainability, consistency, architecture boundaries, and deterministic AI-slop patterns.
 
@@ -238,16 +238,16 @@ Optional external checkers (Ruff) are available from **v0.4.0**. Use the **defau
 
 ## Tutorial
 
-Educational material lives under [`docs/tutorial/`](docs/tutorial/):
+Educational material lives under [`docs/tutorial/`](https://github.com/latentmeta/zerum/tree/main/docs/tutorial/):
 
-- [00 — Introduction](docs/tutorial/00-introduction.md)
-- [01 — Static analysis basics](docs/tutorial/01-static-analysis-basics.md)
-- [02 — Parsing Python in Rust](docs/tutorial/02-parsing-python-in-rust.md)
-- [03 — Building a rule engine](docs/tutorial/03-building-a-rule-engine.md)
-- [04 — Writing checks](docs/tutorial/04-writing-checks.md)
-- [05 — Explain mode and configuration](docs/tutorial/05-explain-mode-and-configuration.md)
-- [06 — Config and profiles](docs/tutorial/06-config-profiles.md)
-- [12 — Roadmap](docs/tutorial/12-roadmap.md)
+- [00 — Introduction](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/00-introduction.md)
+- [01 — Static analysis basics](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/01-static-analysis-basics.md)
+- [02 — Parsing Python in Rust](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/02-parsing-python-in-rust.md)
+- [03 — Building a rule engine](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/03-building-a-rule-engine.md)
+- [04 — Writing checks](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/04-writing-checks.md)
+- [05 — Explain mode and configuration](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/05-explain-mode-and-configuration.md)
+- [06 — Config and profiles](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/06-config-profiles.md)
+- [12 — Roadmap](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/12-roadmap.md)
 
 ---
 
@@ -399,7 +399,7 @@ zerum:
 ### Tips for CI
 
 - Start with **default** profile; move to `--profile strict` once the baseline is clean.
-- Pin the version in CI: `pip install "zerum==0.4.1"`.
+- Pin the version in CI: `pip install "zerum==0.4.2"`.
 - Combine with Ruff only if `ruff` is installed in the job:  
   `zerum check . --with-external ruff`.
 - Treat exit code `2` as infra failure; `1` as “findings to fix.”
@@ -408,7 +408,7 @@ zerum:
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md). Release notes: [v0.4.1](docs/RELEASE_v0.4.1.md).
+See [CHANGELOG.md](https://github.com/latentmeta/zerum/blob/main/CHANGELOG.md). Release notes: [v0.4.2](https://github.com/latentmeta/zerum/blob/main/docs/RELEASE_v0.4.2.md).
 
 ---
 
@@ -440,10 +440,10 @@ cargo test
 cargo clippy --all-targets --all-features -- -D warnings
 ```
 
-Packaging notes: [`packaging/`](packaging/) (PyPI, Homebrew). Config for multi-channel scaffolding: [`Sastri.toml`](Sastri.toml).
+Packaging notes: [`packaging/`](https://github.com/latentmeta/zerum/tree/main/packaging) (PyPI, Homebrew). Config for multi-channel scaffolding: [`Sastri.toml`](https://github.com/latentmeta/zerum/blob/main/Sastri.toml).
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/latentmeta/zerum/blob/main/LICENSE).

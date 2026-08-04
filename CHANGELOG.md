@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opt-in LLM layer (`--with-llm`)
 - Autofix pipeline
 
+## [0.4.2] - 2026-08-04
+
+Docs-only patch for PyPI README rendering.
+
+### Fixed
+
+- README tutorial and packaging links are **absolute GitHub URLs** so they work on [pypi.org/project/zerum](https://pypi.org/project/zerum/) (relative `docs/tutorial/…` paths were broken there)
+
+Release notes: [docs/RELEASE_v0.4.2.md](docs/RELEASE_v0.4.2.md)
+
 ## [0.4.1] - 2026-08-04
 
 Distribution and docs patch on top of v0.4.0. Same ~75-rule catalog and CLI behavior.
@@ -134,7 +144,8 @@ First public release — Phase 1 foundation. Deterministic Python governance in 
 - `--with-llm` is accepted but not implemented.
 - `integrations/`, `analyzers/external.rs`, `analyzers/llm.rs`, and `llm/` are stubs only.
 
-[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/latentmeta/zerum/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/latentmeta/zerum/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/latentmeta/zerum/compare/v0.2.0...v0.4.0
 [0.2.0]: https://github.com/latentmeta/zerum/compare/v0.1.0...v0.2.0
