@@ -104,6 +104,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify Cargo.lock is current
+        run: cargo metadata --locked --format-version 1 >/dev/null
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -115,6 +121,7 @@ jobs:
           args: --release --locked --out dist --sdist --find-interpreter
           sccache: "true"
           manylinux: "2_28"
+          maturin-version: v1.8.3
 
       - name: Install wheel and smoke-test CLI
         shell: bash
