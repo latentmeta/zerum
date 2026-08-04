@@ -1,0 +1,52 @@
+# Sastri packaging config for Zerum.
+# Secrets are never stored here — see `sastri secrets`.
+
+[project]
+name = "zerum"
+description = "Deterministic Python code governance: ~75 checks, default/strict profiles, explain mode, optional Ruff orchestration"
+github_owner = "latentmeta"
+github_repo = "zerum"
+binary_name = "zerum"
+version = "0.4.0"
+cargo_manifest = "Cargo.toml"
+license = "MIT"
+homepage = "https://github.com/latentmeta/zerum"
+
+[org]
+homebrew_tap = "latentmeta/homebrew-tap"
+pypi_package = "zerum"
+
+[mechanisms]
+# Requested channels
+pypi = true
+homebrew = true
+# Required so Release asset names match the Homebrew formula URLs
+github_releases = true
+# Leave other channels off unless enabled later
+ci = false
+install_sh = false
+scoop = false
+asdf = false
+mise = false
+setup_action = false
+npm = false
+hex = false
+ruby_gem = false
+haskell_cabal = false
+
+[release]
+platforms = [
+  "linux-x86_64",
+  "linux-aarch64",
+  "macos-aarch64",
+  "macos-x86_64",
+  "windows-x86_64",
+]
+publish_crates_io = true
+publish_sha256sums = true
+
+[paths]
+packaging_dir = "packaging"
+scripts_dir = "scripts"
+workflows_dir = ".github/workflows"
+actions_dir = ".github/actions"
