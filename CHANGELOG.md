@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **PyPI distribution** via [maturin](https://www.maturin.rs/) bin bindings (`pyproject.toml`): `pip install zerum` / `uv tool install zerum` / `pipx install zerum` installs the Rust CLI with no Rust toolchain required
+- GitHub Actions: `publish-pypi.yml` builds Linux/macOS/Windows wheels + sdist via Trusted Publishing
+- Homebrew formula scaffold under [`packaging/homebrew/`](packaging/homebrew/)
+- User-focused README (install, features, CI/CD)
+
 ### Planned
 
 - Opt-in LLM layer (`--with-llm`)

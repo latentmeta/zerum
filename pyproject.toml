@@ -1,0 +1,30 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "zerum"
+version = "0.4.0"
+description = "Deterministic Python code governance: ~75 checks, default/strict profiles, explain mode, optional Ruff orchestration"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "latentmeta" }]
+classifiers = [
+  "Environment :: Console",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: 3",
+]
+urls = { Homepage = "https://github.com/latentmeta/zerum", Repository = "https://github.com/latentmeta/zerum" }
+
+[tool.maturin]
+bindings = "bin"
+manifest-path = "Cargo.toml"
+module-name = "zerum"
+strip = true
+include = [
+  { path = "LICENSE", format = "sdist" },
+  { path = "README.md", format = "sdist" },
+]
