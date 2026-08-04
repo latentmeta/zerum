@@ -6,7 +6,7 @@
 
 **Zerum** is deterministic code governance for Python — *Credo for Python*.
 
-**v0.4.0** ships ~**75** native checks (ZR001–ZR510), explainable findings, quiet **default** / full **strict** profiles, optional **Ruff** orchestration, and `human` / `json` output. No LLM in the core path.
+**v0.4.1** ships ~**75** native checks (ZR001–ZR510), explainable findings, quiet **default** / full **strict** profiles, optional **Ruff** orchestration, and `human` / `json` output. Install via **PyPI**, **Homebrew**, **crates.io**, or GitHub Releases. No LLM in the core path.
 
 Zerum is **not** a Ruff replacement. It focuses on maintainability, consistency, architecture boundaries, and deterministic AI-slop patterns.
 
@@ -399,7 +399,7 @@ zerum:
 ### Tips for CI
 
 - Start with **default** profile; move to `--profile strict` once the baseline is clean.
-- Pin the version in CI: `pip install "zerum==0.4.0"`.
+- Pin the version in CI: `pip install "zerum==0.4.1"`.
 - Combine with Ruff only if `ruff` is installed in the job:  
   `zerum check . --with-external ruff`.
 - Treat exit code `2` as infra failure; `1` as “findings to fix.”
@@ -408,7 +408,7 @@ zerum:
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for v0.4.0 and later.
+See [CHANGELOG.md](CHANGELOG.md). Release notes: [v0.4.1](docs/RELEASE_v0.4.1.md).
 
 ---
 

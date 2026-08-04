@@ -36,6 +36,12 @@
 - [x] `list-checkers` CLI
 - [x] Optional SARIF reporter (`--features sarif`)
 
+## v0.4.1 — distribution (complete)
+
+- [x] PyPI wheels via maturin (`pip` / `pipx` / `uv`)
+- [x] Homebrew formula scaffold + Release `SHA256SUMS`
+- [x] User-focused README and CI examples for Python projects
+
 ## Phase 4 — LLM layer (future)
 
 - [ ] Opt-in `zerum check --with-llm`

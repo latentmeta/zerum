@@ -4,7 +4,7 @@
 class Zerum < Formula
   desc "Deterministic Python code governance: ~75 checks, default/strict profiles, explain mode, optional Ruff orchestration"
   homepage "https://github.com/latentmeta/zerum"
-  version "0.4.0"
+  version "0.4.1"
   license "MIT"
 
   on_macos do
