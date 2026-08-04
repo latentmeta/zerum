@@ -7,17 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **PyPI distribution** via [maturin](https://www.maturin.rs/) bin bindings (`pyproject.toml`): `pip install zerum` / `uv tool install zerum` / `pipx install zerum` installs the Rust CLI with no Rust toolchain required
-- GitHub Actions: `publish-pypi.yml` builds Linux/macOS/Windows wheels + sdist via Trusted Publishing
-- Homebrew formula scaffold under [`packaging/homebrew/`](packaging/homebrew/)
-- User-focused README (install, features, CI/CD)
-
 ### Planned
 
 - Opt-in LLM layer (`--with-llm`)
 - Autofix pipeline
+
+## [0.4.1] - 2026-08-04
+
+Distribution and docs patch on top of v0.4.0. Same ~75-rule catalog and CLI behavior.
+
+### Added
+
+- **PyPI distribution** via [maturin](https://www.maturin.rs/) bin bindings (`pyproject.toml`): `pip install zerum` / `uv tool install zerum` / `pipx install zerum` (no Rust toolchain required)
+- GitHub Actions: [`publish-pypi.yml`](.github/workflows/publish-pypi.yml) — multi-arch wheels + sdist via Trusted Publishing
+- **Homebrew** formula scaffold under [`packaging/homebrew/`](packaging/homebrew/) (asset names aligned with Release workflow)
+- Release workflow builds platform archives + `SHA256SUMS` for brew/scoop-style installs
+- User-focused README (install, feature demos, CI/CD for Python projects)
+- [`Sastri.toml`](Sastri.toml) for multi-channel packaging scaffolding
+
+### Changed
+
+- README rewritten for end users; contributor/`cargo run` material moved to the end
+- Release asset naming: `zerum-vVERSION-PLATFORM.tar.gz|.zip`
+
+Release notes: [docs/RELEASE_v0.4.1.md](docs/RELEASE_v0.4.1.md)
 
 ## [0.4.0] - 2026-06-07
 
@@ -121,6 +134,8 @@ First public release — Phase 1 foundation. Deterministic Python governance in 
 - `--with-llm` is accepted but not implemented.
 - `integrations/`, `analyzers/external.rs`, `analyzers/llm.rs`, and `llm/` are stubs only.
 
-[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/latentmeta/zerum/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/latentmeta/zerum/compare/v0.2.0...v0.4.0
 [0.2.0]: https://github.com/latentmeta/zerum/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/latentmeta/zerum/releases/tag/v0.1.0
