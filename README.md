@@ -189,15 +189,6 @@ zerum list-checkers
 
 `list-checks` prints the full ZR catalog. `list-checkers` shows external adapters (e.g. Ruff) and whether they are available on `PATH`.
 
-### Output formats
-
-```bash
-zerum check . --format human    # default
-zerum check . --format json     # CI / tooling
-```
-
-JSON is suitable for piping into scripts or uploaders.
-
 ### Optional Ruff orchestration
 
 Zerum can run **Ruff** alongside native checks and merge findings:
@@ -223,6 +214,40 @@ Requires `ruff` on `PATH`. External findings use ids like `EXT-RUFF`.
 | ZR301–315 | Refactor |
 | ZR401–415 | Warning |
 | ZR501–510 | AI (deterministic) |
+
+---
+
+## Output formats
+
+```bash
+zerum check . --format human    # default
+zerum check . --format json
+zerum check . --profile strict
+zerum check . --with-external ruff
+zerum list-checkers
+```
+
+| Format | When to use |
+|--------|-------------|
+| `human` | Terminal review — rule id, location, explanation, remediation |
+| `json` | CI artifacts, scripts, and custom dashboards |
+
+Optional external checkers (Ruff) are available from **v0.4.0**. Use the **default** profile for low noise on greenfield code; use `--profile strict` for full catalog coverage.
+
+---
+
+## Tutorial
+
+Educational material lives under [`docs/tutorial/`](docs/tutorial/):
+
+- [00 — Introduction](docs/tutorial/00-introduction.md)
+- [01 — Static analysis basics](docs/tutorial/01-static-analysis-basics.md)
+- [02 — Parsing Python in Rust](docs/tutorial/02-parsing-python-in-rust.md)
+- [03 — Building a rule engine](docs/tutorial/03-building-a-rule-engine.md)
+- [04 — Writing checks](docs/tutorial/04-writing-checks.md)
+- [05 — Explain mode and configuration](docs/tutorial/05-explain-mode-and-configuration.md)
+- [06 — Config and profiles](docs/tutorial/06-config-profiles.md)
+- [12 — Roadmap](docs/tutorial/12-roadmap.md)
 
 ---
 
