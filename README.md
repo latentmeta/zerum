@@ -23,7 +23,7 @@
 
 Zerum is **not** a Ruff replacement. It focuses on maintainability, consistency, architecture boundaries, and deterministic AI-slop patterns.
 
-Full-resolution artwork: [`docs/zerum-icon-01.png`](https://github.com/latentmeta/zerum/blob/main/docs/zerum-icon-01.png).
+Full-resolution artwork: [`docs/zerum-icon-01.png`](https://github.com/latentmeta/zerum/blob/main/docs/zerum-icon-02.jpg).
 
 ---
 
