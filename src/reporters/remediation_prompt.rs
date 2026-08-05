@@ -4,6 +4,7 @@
 use crate::core::{Issue, Severity};
 use crate::reporters::Reporter;
 use anyhow::Result;
+use std::cmp::Reverse;
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::fs;
@@ -31,17 +32,6 @@ impl Reporter for RemediationPromptReporter {
     }
 }
 
-/// Higher severity sorts first (Critical → … → Info).
-fn severity_rank(s: Severity) -> u8 {
-    match s {
-        Severity::Critical => 0,
-        Severity::High => 1,
-        Severity::Medium => 2,
-        Severity::Low => 3,
-        Severity::Info => 4,
-    }
-}
-
 fn group_key(issue: &Issue) -> (String, String) {
     (issue.id.clone(), issue.title.clone())
 }
@@ -57,8 +47,8 @@ fn grouped_findings(issues: &[Issue]) -> Vec<(String, String, Severity, Vec<&Iss
         .into_iter()
         .map(|((id, title), mut items)| {
             items.sort_by(|a, b| {
-                severity_rank(a.severity)
-                    .cmp(&severity_rank(b.severity))
+                Reverse(a.severity)
+                    .cmp(&Reverse(b.severity))
                     .then_with(|| a.file.cmp(&b.file))
                     .then_with(|| a.line.cmp(&b.line))
                     .then_with(|| a.column.cmp(&b.column))
@@ -67,17 +57,13 @@ fn grouped_findings(issues: &[Issue]) -> Vec<(String, String, Severity, Vec<&Iss
             let max_sev = items
                 .iter()
                 .map(|i| i.severity)
-                .min_by_key(|s| severity_rank(*s))
+                .max()
                 .unwrap_or(Severity::Info);
             (id, title, max_sev, items)
         })
         .collect();
 
-    groups.sort_by(|a, b| {
-        severity_rank(a.2)
-            .cmp(&severity_rank(b.2))
-            .then_with(|| a.0.cmp(&b.0))
-    });
+    groups.sort_by(|a, b| Reverse(a.2).cmp(&Reverse(b.2)).then_with(|| a.0.cmp(&b.0)));
     groups
 }
 

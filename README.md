@@ -19,7 +19,7 @@
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.9%2B%20(wheels)-blue.svg" alt="Python 3.9+ wheels" /></a>
 </p>
 
-**v0.5.0** ships ~**75** native checks (ZR001–ZR510), explainable findings, quiet **default** / full **strict** profiles, optional **Ruff** orchestration, `human` / `json` output, and **`--remediation-prompt`** — a deterministic markdown brief for LLM/editor agents (no model call in Zerum). Install via **PyPI**, **Homebrew**, **crates.io**, or GitHub Releases.
+**v0.5.0** ships ~**75** native checks (ZR001–ZR510), explainable findings (curated copy for tier-1 rules; AST-precise fallbacks elsewhere), quiet **default** / full **strict** profiles, optional **Ruff** orchestration, `human` / `json` / `sarif` output, and **`--remediation-prompt`** — a deterministic markdown brief for LLM/editor agents (no model call in Zerum). Install via **PyPI**, **Homebrew**, **crates.io**, or GitHub Releases.
 
 Zerum is **not** a Ruff replacement. It focuses on maintainability, consistency, architecture boundaries, and deterministic AI-slop patterns.
 
@@ -246,7 +246,7 @@ zerum check . --with-external ruff
 zerum check .
 ```
 
-Requires `ruff` on `PATH`. External findings use ids like `EXT-RUFF`.
+Requires `ruff` on `PATH`. External findings use ids like `EXT-RUFF-E501`.
 
 ### Rule categories
 
@@ -266,6 +266,7 @@ Requires `ruff` on `PATH`. External findings use ids like `EXT-RUFF`.
 ```bash
 zerum check . --format human    # default
 zerum check . --format json
+zerum check . --format sarif
 zerum check . --profile strict
 zerum check . --with-external ruff
 zerum check . --remediation-prompt fixes.md
@@ -276,7 +277,8 @@ zerum list-checkers
 |--------|-------------|
 | `human` | Terminal review — rule id, location, explanation, remediation |
 | `json` | CI artifacts, scripts, and custom dashboards |
-| `--remediation-prompt` | Markdown brief for an LLM/editor agent (file on disk; still prints `human`/`json` to stdout) |
+| `sarif` | GitHub code scanning and other SARIF consumers |
+| `--remediation-prompt` | Markdown brief for an LLM/editor agent (file on disk; still prints `human`/`json`/`sarif` to stdout) |
 
 Optional external checkers (Ruff) are available from **v0.4.0**. Use the **default** profile for low noise on greenfield code; use `--profile strict` for full catalog coverage.
 

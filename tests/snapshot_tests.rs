@@ -24,3 +24,13 @@ fn json_report_snapshot_bad_project() {
     let _: serde_json::Value = serde_json::from_str(&out).expect("valid JSON");
     insta::assert_snapshot!("json_bad_project", out);
 }
+
+#[cfg(feature = "sarif")]
+#[test]
+fn sarif_report_snapshot_bad_project() {
+    let out = run_check_format("sarif");
+    let _: serde_json::Value = serde_json::from_str(&out).expect("valid SARIF JSON");
+    assert!(out.contains("\"version\": \"2.1.0\""));
+    assert!(out.contains("\"name\": \"zerum\""));
+    insta::assert_snapshot!("sarif_bad_project", out);
+}

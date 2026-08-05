@@ -231,11 +231,29 @@ impl Config {
     }
 
     fn builtin_enabled_for_profile(&self, id: &str) -> bool {
-        match self.profile.name.as_str() {
-            "strict" => true,
-            "default" => !is_disabled_in_default_profile(id),
-            _ => !is_disabled_in_default_profile(id),
+        if self.profile_resolves_to_strict(&self.profile.name) {
+            return true;
         }
+        !is_disabled_in_default_profile(id)
+    }
+
+    /// Walks the `extends` chain; returns true if any ancestor is the built-in `strict` profile.
+    fn profile_resolves_to_strict(&self, name: &str) -> bool {
+        let mut current = Some(name);
+        let mut seen = HashSet::new();
+        while let Some(n) = current {
+            if n == "strict" {
+                return true;
+            }
+            if n == "default" {
+                return false;
+            }
+            if !seen.insert(n.to_string()) {
+                return false;
+            }
+            current = self.profiles.get(n).and_then(|p| p.extends.as_deref());
+        }
+        false
     }
 
     fn profile_chain_defs(&self) -> Vec<Option<&ProfileDefinition>> {
@@ -316,6 +334,28 @@ mod tests {
         };
         assert!(config.is_check_enabled("ZR110"));
         assert!(config.is_check_enabled("ZR506"));
+    }
+
+    #[test]
+    fn custom_profile_extending_strict_enables_all_rules() {
+        let mut profiles = HashMap::new();
+        profiles.insert(
+            "team".to_string(),
+            ProfileDefinition {
+                extends: Some("strict".to_string()),
+                checks: HashMap::new(),
+            },
+        );
+        let config = Config {
+            profile: ActiveProfile {
+                name: "team".to_string(),
+            },
+            profiles,
+            ..Default::default()
+        };
+        assert!(config.is_check_enabled("ZR110"));
+        assert!(config.is_check_enabled("ZR506"));
+        assert!(config.is_check_enabled("ZR007"));
     }
 
     #[test]

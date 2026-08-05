@@ -1,5 +1,6 @@
 ---
 source: tests/snapshot_tests.rs
+assertion_line: 35
 expression: out
 ---
 {
@@ -19,45 +20,73 @@ expression: out
               }
             },
             {
-              "id": "ZR006",
+              "id": "ZR405",
               "name": "print-debugging",
               "short_description": {
                 "text": "print-debugging"
               }
             },
             {
-              "id": "ZR005",
-              "name": "broad-except",
+              "id": "ZR408",
+              "name": "silent-exception-swallowing",
               "short_description": {
-                "text": "broad-except"
+                "text": "silent-exception-swallowing"
               }
             },
             {
-              "id": "ZR001",
-              "name": "too-many-branches",
+              "id": "ZR411",
+              "name": "blanket-except",
               "short_description": {
-                "text": "too-many-branches"
+                "text": "blanket-except"
               }
             },
             {
-              "id": "ZR004",
-              "name": "nested-conditionals",
+              "id": "ZR003",
+              "name": "deep-nesting",
               "short_description": {
-                "text": "nested-conditionals"
+                "text": "deep-nesting"
               }
             },
             {
-              "id": "ZR007",
+              "id": "ZR006",
+              "name": "magic-number",
+              "short_description": {
+                "text": "magic-number"
+              }
+            },
+            {
+              "id": "ZR301",
+              "name": "duplicate-branch-body",
+              "short_description": {
+                "text": "duplicate-branch-body"
+              }
+            },
+            {
+              "id": "ZR302",
+              "name": "collapsible-if",
+              "short_description": {
+                "text": "collapsible-if"
+              }
+            },
+            {
+              "id": "ZR310",
+              "name": "identity-passthrough",
+              "short_description": {
+                "text": "identity-passthrough"
+              }
+            },
+            {
+              "id": "ZR404",
               "name": "mutable-default-argument",
               "short_description": {
                 "text": "mutable-default-argument"
               }
             },
             {
-              "id": "ZR009",
-              "name": "ai-generated-placeholder-comment",
+              "id": "ZR501",
+              "name": "placeholder-generated-code",
               "short_description": {
-                "text": "ai-generated-placeholder-comment"
+                "text": "placeholder-generated-code"
               }
             }
           ]
@@ -85,7 +114,7 @@ expression: out
           ]
         },
         {
-          "rule_id": "ZR006",
+          "rule_id": "ZR405",
           "level": "note",
           "message": {
             "text": "print() used for debugging"
@@ -105,10 +134,10 @@ expression: out
           ]
         },
         {
-          "rule_id": "ZR005",
+          "rule_id": "ZR408",
           "level": "error",
           "message": {
-            "text": "broad or bare except handler swallows errors"
+            "text": "broad except handler only contains pass"
           },
           "locations": [
             {
@@ -125,10 +154,10 @@ expression: out
           ]
         },
         {
-          "rule_id": "ZR001",
-          "level": "warning",
+          "rule_id": "ZR411",
+          "level": "error",
           "message": {
-            "text": "function `branchy` has 13 branches (max 8)"
+            "text": "except Exception catches nearly all errors; prefer specific exceptions"
           },
           "locations": [
             {
@@ -137,15 +166,15 @@ expression: out
                   "uri": "./tests/fixtures/bad_project/messy.py"
                 },
                 "region": {
-                  "start_line": 8,
-                  "start_column": 1
+                  "start_line": 5,
+                  "start_column": 5
                 }
               }
             }
           ]
         },
         {
-          "rule_id": "ZR004",
+          "rule_id": "ZR003",
           "level": "warning",
           "message": {
             "text": "function `branchy` has conditional nesting depth 9 (max 3)"
@@ -165,7 +194,207 @@ expression: out
           ]
         },
         {
-          "rule_id": "ZR007",
+          "rule_id": "ZR006",
+          "level": "note",
+          "message": {
+            "text": "magic numeric literal `3`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 15,
+                  "start_column": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR006",
+          "level": "note",
+          "message": {
+            "text": "magic numeric literal `4`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 17,
+                  "start_column": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR006",
+          "level": "note",
+          "message": {
+            "text": "magic numeric literal `5`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 19,
+                  "start_column": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR006",
+          "level": "note",
+          "message": {
+            "text": "magic numeric literal `6`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 21,
+                  "start_column": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR301",
+          "level": "note",
+          "message": {
+            "text": "if and elif branches have identical bodies"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 23,
+                  "start_column": 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR006",
+          "level": "note",
+          "message": {
+            "text": "magic numeric literal `7`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 23,
+                  "start_column": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR006",
+          "level": "note",
+          "message": {
+            "text": "magic numeric literal `8`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 25,
+                  "start_column": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR006",
+          "level": "note",
+          "message": {
+            "text": "magic numeric literal `3`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 28,
+                  "start_column": 24
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR302",
+          "level": "note",
+          "message": {
+            "text": "nested if without else can be collapsed with `and`"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 29,
+                  "start_column": 13
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR310",
+          "level": "note",
+          "message": {
+            "text": "function `bad_default` only returns its single argument"
+          },
+          "locations": [
+            {
+              "physical_location": {
+                "artifact_location": {
+                  "uri": "./tests/fixtures/bad_project/messy.py"
+                },
+                "region": {
+                  "start_line": 33,
+                  "start_column": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "rule_id": "ZR404",
           "level": "error",
           "message": {
             "text": "function `bad_default` uses a mutable default argument"
@@ -185,10 +414,10 @@ expression: out
           ]
         },
         {
-          "rule_id": "ZR009",
+          "rule_id": "ZR501",
           "level": "warning",
           "message": {
-            "text": "suspicious AI-related placeholder: `TODO: AI`"
+            "text": "AI placeholder marker found in comment"
           },
           "locations": [
             {
@@ -198,7 +427,7 @@ expression: out
                 },
                 "region": {
                   "start_line": 36,
-                  "start_column": 3
+                  "start_column": 1
                 }
               }
             }

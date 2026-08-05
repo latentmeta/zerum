@@ -1,6 +1,6 @@
-# Writing checks (v0.2.0)
+# Writing checks
 
-v0.2.0 ships roughly **75 deterministic rules** from a single catalog (`src/checks/catalog.rs`) instead of ten hand-written modules. New rules should prefer **AST-precise** detectors over line-pattern heuristics.
+Zerum ships roughly **75 deterministic rules** from a single catalog (`src/checks/catalog.rs`). New rules should prefer **AST-precise** detectors over line-pattern heuristics.
 
 ## Catalog + detectors
 
@@ -57,7 +57,9 @@ walk_stmts_in_module(ctx.parsed, &mut |stmt| {
 
 - Walkers in `ast_util` do not model all Python 3.12 syntax equally; edge cases may be missed.
 - Pattern rules scan source text and can match string literals or comments incorrectly.
+- Comment extractors treat the first `#` on a line as a comment start (including `#` inside string literals).
 - Architecture rule ZR207 requires `[[checks.ZR207.rules]]` in discovered `zerum.toml`; path matching uses directory segments.
+- ZR206 (circular import) is reserved in the catalog but needs multi-file analysis and currently never fires.
 
 ## Tradeoffs
 

@@ -131,6 +131,49 @@ fn zr507_constant_false_branch_triggers() {
 }
 
 #[test]
+fn zr008_same_named_methods_use_per_occurrence_docstring() {
+    // First __init__ lacks a docstring; second has one — only first should fire.
+    let out = run_json_any(
+        "class A:\n    def __init__(self):\n        pass\n\nclass B:\n    def __init__(self):\n        \"\"\"ok\"\"\"\n        pass\n",
+        Some("[checks.ZR008]\nenabled = true\n"),
+    );
+    let items = out.as_array().unwrap();
+    let zr008: Vec<_> = items
+        .iter()
+        .filter(|i| i.get("id").and_then(|v| v.as_str()) == Some("ZR008"))
+        .collect();
+    assert_eq!(zr008.len(), 1, "stdout: {out}");
+    assert_eq!(zr008[0].get("line").and_then(|v| v.as_u64()), Some(2));
+}
+
+#[test]
+fn zr401_base_exception_does_not_also_fire_zr411() {
+    let out = run_json(
+        "def f():\n    try:\n        return 1\n    except BaseException:\n        return 0\n",
+    );
+    assert!(has_id(&out, "ZR401"));
+    assert!(!has_id(&out, "ZR411"));
+}
+
+#[test]
+fn zr411_exception_does_not_also_fire_zr401() {
+    let out =
+        run_json("def f():\n    try:\n        return 1\n    except Exception:\n        return 0\n");
+    assert!(has_id(&out, "ZR411"));
+    assert!(!has_id(&out, "ZR401"));
+}
+
+#[test]
+fn zr203_does_not_fire_on_two_top_level_functions() {
+    let out = run_json_any(
+        "def f():\n    return 1\ndef g():\n    return 2\n",
+        Some("[profile]\nname = \"strict\"\n"),
+    );
+    assert!(!has_id(&out, "ZR203"), "stdout: {out}");
+    assert!(!has_id(&out, "ZR110"), "stdout: {out}");
+}
+
+#[test]
 fn zr409_module_level_mutable_triggers() {
     let out = run_json("CACHE = []\n");
     assert!(has_id(&out, "ZR409"));

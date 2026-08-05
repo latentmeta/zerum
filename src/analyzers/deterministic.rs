@@ -46,12 +46,7 @@ impl DeterministicAnalyzer {
             .parser
             .parse_file(&source, path)
             .with_context(|| format!("parse {}", path.display()))?;
-        let ctx = CheckContext {
-            path,
-            source: &source,
-            parsed: &parsed,
-            config,
-        };
+        let ctx = CheckContext::new(path, &source, &parsed, config);
         let mut issues = Vec::new();
         for check in self.registry.iter() {
             if config.is_check_enabled(check.id()) {

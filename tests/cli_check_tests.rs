@@ -26,7 +26,7 @@ fn check_bad_project_fails_with_expected_checks() {
         .expect("run zerum check");
     assert_eq!(output.status.code(), Some(1));
     let stdout = String::from_utf8_lossy(&output.stdout);
-    for id in ["ZR002", "ZR401", "ZR404", "ZR405", "ZR501"] {
+    for id in ["ZR002", "ZR411", "ZR404", "ZR405", "ZR501"] {
         assert!(stdout.contains(id), "expected {id} in output");
     }
 }

@@ -41,7 +41,7 @@ toml = "0.8"
 walkdir = "2"
 
 [features]
-default = []
+default = ["sarif"]
 sarif = []
 
 [dev-dependencies]

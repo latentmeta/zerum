@@ -7,10 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Profile inheritance: custom profiles with `extends = "strict"` now enable the full catalog
+- ZR008 docstring detection uses AST locations (no false positives on same-named methods)
+- ZR401 / ZR411 / ZR403 no longer double-report the same except handler
+- Near-tautological `PatternAny` rules (ZR102/104/109/110/202/203/208/505/509/510) rewritten as AST detectors
+- `SourceModel` views cached once per file
+- Dead `MarkdownReporter` removed; SARIF enabled by default and covered by snapshots
+- External Ruff findings use per-code ids (`EXT-RUFF-E501`)
+
 ### Planned
 
 - Opt-in LLM layer (`--with-llm`)
 - Autofix pipeline
+- Multi-file circular-import detection (ZR206 placeholder)
 
 ## [0.5.0] - 2026-08-05
 
