@@ -1,7 +1,7 @@
 # Zerum
 
 <p align="center">
-  <img src="docs/zerum-icon-02.jpg" alt="Zerum — Rust crab administering analysis extract to a Python snake" width="640" />
+  <img src="https://github.com/latentmeta/zerum/blob/main/docs/zerum-icon-02.jpg" alt="Zerum — Rust crab administering analysis extract to a Python snake" width="640" />
 </p>
 
 <p align="center">
