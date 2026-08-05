@@ -42,6 +42,12 @@
 - [x] Homebrew formula scaffold + Release `SHA256SUMS`
 - [x] User-focused README and CI examples for Python projects
 
+## v0.5.0 — remediation prompts (complete)
+
+- [x] `zerum check --remediation-prompt` (deterministic; no LLM call)
+- [x] Findings grouped by check type, ordered by severity
+- [x] Source snippets + shared remediation per type
+
 ## Phase 4 — LLM layer (future)
 
 - [ ] Opt-in `zerum check --with-llm`

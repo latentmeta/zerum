@@ -1,5 +1,6 @@
 pub mod human;
 pub mod json;
+pub mod remediation_prompt;
 #[cfg(feature = "sarif")]
 pub mod sarif;
 
@@ -27,3 +28,5 @@ pub fn render(kind: ReportKind, issues: &[Issue]) -> Result<String> {
         ReportKind::Sarif => sarif::SarifReporter.report(issues),
     }
 }
+
+pub use remediation_prompt::{render_prompt, RemediationPromptReporter};

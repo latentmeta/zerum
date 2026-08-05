@@ -66,6 +66,34 @@ fn check_simple_project_finds_issues_under_strict_profile() {
 }
 
 #[test]
+fn check_writes_remediation_prompt_file() {
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/bad_project");
+    let dir = tempfile::tempdir().expect("tempdir");
+    let prompt = dir.path().join("fix.md");
+    let output = Command::new(zerum_bin())
+        .args([
+            "check",
+            path,
+            "--remediation-prompt",
+            prompt.to_str().unwrap(),
+        ])
+        .output()
+        .expect("run zerum check --remediation-prompt");
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Wrote remediation prompt"),
+        "stderr={stderr}"
+    );
+    let body = std::fs::read_to_string(&prompt).expect("read prompt");
+    assert!(body.contains("Zerum remediation prompt"));
+    assert!(body.contains("ZR"));
+    assert!(body.contains("## Findings by type"));
+    assert!(body.contains("### Types (severity order)"));
+    assert!(body.contains("## Instructions for the assistant"));
+}
+
+#[test]
 fn explain_zr001_includes_metadata() {
     let output = Command::new(zerum_bin())
         .args(["explain", "ZR001"])

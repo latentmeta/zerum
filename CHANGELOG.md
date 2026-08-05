@@ -12,6 +12,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opt-in LLM layer (`--with-llm`)
 - Autofix pipeline
 
+## [0.5.0] - 2026-08-05
+
+Agent-friendly remediation briefs on top of the v0.4.x catalog and distribution stack.
+
+### Added
+
+- **`zerum check --remediation-prompt [FILE]`** — write a deterministic markdown remediation prompt for pasting into an LLM/editor agent (**no model call** in Zerum)
+  - Findings **grouped by check id (type)**
+  - Groups and occurrences ordered by **severity** (critical → info)
+  - Shared explanation/remediation per type; per-occurrence locations and source snippets
+  - Default output path: `zerum-remediation-prompt.md`
+- Project icon / artwork: [`docs/zerum-icon-01.png`](docs/zerum-icon-01.png) (web preview: [`docs/zerum-icon.jpg`](docs/zerum-icon.jpg))
+- README badges: CI, docs.rs, license, Rust/Python compatibility
+
+### Changed
+
+- README documents remediation prompts, CI artifact tips, and coverage via rustup `cargo`
+
+Release notes: [docs/RELEASE_v0.5.0.md](docs/RELEASE_v0.5.0.md)
+
 ## [0.4.2] - 2026-08-04
 
 Docs-only patch for PyPI README rendering.
@@ -144,7 +164,8 @@ First public release — Phase 1 foundation. Deterministic Python governance in 
 - `--with-llm` is accepted but not implemented.
 - `integrations/`, `analyzers/external.rs`, `analyzers/llm.rs`, and `llm/` are stubs only.
 
-[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/latentmeta/zerum/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/latentmeta/zerum/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/latentmeta/zerum/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/latentmeta/zerum/compare/v0.2.0...v0.4.0

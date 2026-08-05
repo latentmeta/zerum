@@ -1,16 +1,20 @@
 # Zerum
 
-[![crates.io](https://img.shields.io/crates/v/zerum.svg)](https://crates.io/crates/zerum)
-[![PyPI](https://img.shields.io/pypi/v/zerum.svg)](https://pypi.org/project/zerum/)
-[![GitHub release](https://img.shields.io/github/v/release/latentmeta/zerum.svg)](https://github.com/latentmeta/zerum/releases)
 
-**Zerum** is deterministic code governance for Python — *Credo for Python*.
 
-**v0.4.2** ships ~**75** native checks (ZR001–ZR510), explainable findings, quiet **default** / full **strict** profiles, optional **Ruff** orchestration, and `human` / `json` output. Install via **PyPI**, **Homebrew**, **crates.io**, or GitHub Releases. No LLM in the core path.
+**Zerum** — deterministic code governance for Python · *Credo for Python*
+
+
+
+**v0.5.0** ships ~**75** native checks (ZR001–ZR510), explainable findings, quiet **default** / full **strict** profiles, optional **Ruff** orchestration, `human` / `json` output, and `--remediation-prompt` — a deterministic markdown brief for LLM/editor agents (no model call in Zerum). Install via **PyPI**, **Homebrew**, **crates.io**, or GitHub Releases.
 
 Zerum is **not** a Ruff replacement. It focuses on maintainability, consistency, architecture boundaries, and deterministic AI-slop patterns.
 
+Full-resolution artwork: `[docs/zerum-icon-01.png](https://github.com/latentmeta/zerum/blob/main/docs/zerum-icon-01.png)`.
+
 ---
+
+
 
 ## Install
 
@@ -32,6 +36,8 @@ brew install latentmeta/tap/zerum
 ```bash
 cargo install zerum --locked
 ```
+
+
 
 ### Python (recommended for most Python projects)
 
@@ -58,6 +64,8 @@ zerum --help
 
 ---
 
+
+
 ## Quick start
 
 ```bash
@@ -69,6 +77,9 @@ zerum init
 # Run checks on the project
 zerum check .
 
+# Write a remediation prompt for an LLM / editor agent
+zerum check . --remediation-prompt
+
 # Browse the catalog and learn a rule
 zerum list-checks
 zerum explain ZR001
@@ -76,15 +87,21 @@ zerum explain ZR001
 
 Exit codes for `zerum check`:
 
-| Code | Meaning |
-|------|---------|
-| 0 | No issues |
-| 1 | Issues found |
-| 2 | Operational error (bad path, CLI error, etc.) |
+
+| Code | Meaning                                       |
+| ---- | --------------------------------------------- |
+| 0    | No issues                                     |
+| 1    | Issues found                                  |
+| 2    | Operational error (bad path, CLI error, etc.) |
+
 
 ---
 
+
+
 ## Using Zerum
+
+
 
 ### Check a project
 
@@ -95,6 +112,34 @@ zerum check src/
 ```
 
 Human-readable output is the default. Each finding includes rule id, location, explanation, and remediation.
+
+### Remediation prompt (v0.5.0)
+
+Zerum can save a **deterministic** markdown prompt from its findings — grouped by check type, ordered by severity (critical → info), with shared remediation text and source snippets. Zerum does **not** call an LLM; you paste the file into Cursor, ChatGPT, or another agent.
+
+```bash
+zerum check . --remediation-prompt
+# → zerum-remediation-prompt.md
+
+zerum check . --remediation-prompt fixes.md
+zerum check . --profile strict --remediation-prompt fixes.md
+```
+
+Typical workflow:
+
+1. `zerum check . --remediation-prompt fixes.md`
+2. Open `fixes.md` in your editor / agent and ask it to apply the remediations
+3. Re-run `zerum check .` until clean
+
+The prompt includes:
+
+- Goal and constraints (minimal edits, preserve APIs)
+- Summary counts and a type index ordered by severity
+- Findings **grouped by check id**, shared explanation/remediation once per type
+- Per-occurrence location, message, and source context
+- Instructions to re-run Zerum after edits
+
+
 
 ### Profiles: default vs strict
 
@@ -124,6 +169,8 @@ Compare:
 zerum check .                    # default — quieter
 zerum check . --profile strict   # all ~75 rules
 ```
+
+
 
 ### Configuration (`zerum.toml`)
 
@@ -206,16 +253,20 @@ Requires `ruff` on `PATH`. External findings use ids like `EXT-RUFF`.
 
 ### Rule categories
 
-| Range | Category |
-|-------|----------|
-| ZR001–015 | Readability |
-| ZR101–110 | Consistency |
-| ZR201–210 | Design |
-| ZR301–315 | Refactor |
-| ZR401–415 | Warning |
+
+| Range     | Category           |
+| --------- | ------------------ |
+| ZR001–015 | Readability        |
+| ZR101–110 | Consistency        |
+| ZR201–210 | Design             |
+| ZR301–315 | Refactor           |
+| ZR401–415 | Warning            |
 | ZR501–510 | AI (deterministic) |
 
+
 ---
+
+
 
 ## Output formats
 
@@ -224,21 +275,27 @@ zerum check . --format human    # default
 zerum check . --format json
 zerum check . --profile strict
 zerum check . --with-external ruff
+zerum check . --remediation-prompt fixes.md
 zerum list-checkers
 ```
 
-| Format | When to use |
-|--------|-------------|
-| `human` | Terminal review — rule id, location, explanation, remediation |
-| `json` | CI artifacts, scripts, and custom dashboards |
+
+| Output                 | When to use                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------------- |
+| `human`                | Terminal review — rule id, location, explanation, remediation                                |
+| `json`                 | CI artifacts, scripts, and custom dashboards                                                 |
+| `--remediation-prompt` | Markdown brief for an LLM/editor agent (file on disk; still prints `human`/`json` to stdout) |
+
 
 Optional external checkers (Ruff) are available from **v0.4.0**. Use the **default** profile for low noise on greenfield code; use `--profile strict` for full catalog coverage.
 
 ---
 
+
+
 ## Tutorial
 
-Educational material lives under [`docs/tutorial/`](https://github.com/latentmeta/zerum/tree/main/docs/tutorial/):
+Educational material lives under `[docs/tutorial/](https://github.com/latentmeta/zerum/tree/main/docs/tutorial/)`:
 
 - [00 — Introduction](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/00-introduction.md)
 - [01 — Static analysis basics](https://github.com/latentmeta/zerum/blob/main/docs/tutorial/01-static-analysis-basics.md)
@@ -251,6 +308,8 @@ Educational material lives under [`docs/tutorial/`](https://github.com/latentmet
 
 ---
 
+
+
 ## Feature demos
 
 Assume a project directory with some Python sources.
@@ -262,6 +321,8 @@ zerum check .
 # exit 0 → clean under default profile
 # exit 1 → findings printed to stdout
 ```
+
+
 
 ### 2. Full catalog
 
@@ -277,6 +338,8 @@ Expect more findings on small modules (docstring / comment / heuristic rules).
 zerum check . --format json > zerum-report.json
 ```
 
+
+
 ### 4. Learn why a finding fired
 
 ```bash
@@ -284,6 +347,8 @@ zerum check . --format human
 # note a rule id, e.g. ZR003
 zerum explain ZR003
 ```
+
+
 
 ### 5. Team config + architecture boundary
 
@@ -293,6 +358,8 @@ zerum init
 zerum check .
 ```
 
+
+
 ### 6. Zerum + Ruff in one command
 
 ```bash
@@ -300,7 +367,20 @@ zerum list-checkers
 zerum check . --with-external ruff --format json
 ```
 
-### 7. Upgrade later
+
+
+### 7. Save a remediation prompt for an LLM / editor agent
+
+```bash
+zerum check . --remediation-prompt
+# → zerum-remediation-prompt.md
+
+zerum check . --remediation-prompt fixes.md
+```
+
+Findings are **grouped by type** and **sorted by severity** (critical first).
+
+### 8. Upgrade later
 
 ```bash
 pip install --upgrade zerum
@@ -311,6 +391,8 @@ zerum --version
 ```
 
 ---
+
+
 
 ## Add Zerum to CI/CD (Python project)
 
@@ -337,19 +419,21 @@ jobs:
           python-version: "3.12"
 
       - name: Install Zerum
-        run: pip install zerum
+        run: pip install "zerum==0.5.0"
 
       - name: Run Zerum
         run: zerum check . --format human
 
-      # Optional: stricter gate + JSON artifact
-      # - run: zerum check . --profile strict --format json > zerum.json
+      # Optional: remediation prompt artifact for reviewers / agents
+      # - run: zerum check . --remediation-prompt zerum-remediation-prompt.md || true
       # - uses: actions/upload-artifact@v4
-      #   if: always()
+      #   if: failure()
       #   with:
-      #     name: zerum-report
-      #     path: zerum.json
+      #     name: zerum-remediation-prompt
+      #     path: zerum-remediation-prompt.md
 ```
+
+
 
 ### GitHub Actions (uv)
 
@@ -358,6 +442,8 @@ jobs:
 - run: uv tool install zerum
 - run: zerum check .
 ```
+
+
 
 ### GitHub Actions (pipx)
 
@@ -368,6 +454,8 @@ jobs:
 - run: pipx install zerum
 - run: zerum check .
 ```
+
+
 
 ### Pre-commit
 
@@ -392,25 +480,32 @@ Install Zerum on the machine (or in CI) before running pre-commit, e.g. `pipx in
 zerum:
   image: python:3.12-slim
   script:
-    - pip install zerum
+    - pip install "zerum==0.5.0"
     - zerum check .
 ```
+
+
 
 ### Tips for CI
 
 - Start with **default** profile; move to `--profile strict` once the baseline is clean.
-- Pin the version in CI: `pip install "zerum==0.4.2"`.
+- Pin the version in CI: `pip install "zerum==0.5.0"`.
 - Combine with Ruff only if `ruff` is installed in the job:  
-  `zerum check . --with-external ruff`.
+`zerum check . --with-external ruff`.
 - Treat exit code `2` as infra failure; `1` as “findings to fix.”
+- Optionally upload `--remediation-prompt` output as a CI artifact when the check fails.
 
 ---
+
+
 
 ## Changelog
 
-See [CHANGELOG.md](https://github.com/latentmeta/zerum/blob/main/CHANGELOG.md). Release notes: [v0.4.2](https://github.com/latentmeta/zerum/blob/main/docs/RELEASE_v0.4.2.md).
+See [CHANGELOG.md](https://github.com/latentmeta/zerum/blob/main/CHANGELOG.md). Release notes: [v0.5.0](https://github.com/latentmeta/zerum/blob/main/docs/RELEASE_v0.5.0.md).
 
 ---
+
+
 
 ## Building from source (contributors)
 
@@ -427,6 +522,7 @@ cargo run -- check path/to/python/project
 cargo run -- explain ZR001
 cargo run -- list-checks
 cargo run -- init
+cargo run -- check path/to/project --remediation-prompt /tmp/fixes.md
 
 # editable Python-env install via maturin
 pip install "maturin>=1.7,<2.0"
@@ -440,9 +536,20 @@ cargo test
 cargo clippy --all-targets --all-features -- -D warnings
 ```
 
-Packaging notes: [`packaging/`](https://github.com/latentmeta/zerum/tree/main/packaging) (PyPI, Homebrew). Config for multi-channel scaffolding: [`Sastri.toml`](https://github.com/latentmeta/zerum/blob/main/Sastri.toml).
+Coverage (rustup cargo; asdf shims break `cargo +toolchain`):
+
+```bash
+export PATH="$HOME/.cargo/bin:$PATH"
+cargo +1.97.1 tarpaulin \
+  --engine llvm --all-targets --all-features --follow-exec \
+  --out Stdout --fail-under 70 -- --test-threads=1
+```
+
+Packaging notes: `[packaging/](https://github.com/latentmeta/zerum/tree/main/packaging)` (PyPI, Homebrew). Config for multi-channel scaffolding: `[Sastri.toml](https://github.com/latentmeta/zerum/blob/main/Sastri.toml)`.
 
 ---
+
+
 
 ## License
 

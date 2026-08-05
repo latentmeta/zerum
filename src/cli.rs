@@ -3,7 +3,7 @@ use crate::config::Config;
 use crate::core::CheckRegistry;
 use crate::discovery::discover_python_files;
 use crate::integrations::builtin_checkers;
-use crate::reporters::{render, ReportKind};
+use crate::reporters::{render, render_prompt, ReportKind};
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::{Path, PathBuf};
@@ -58,6 +58,15 @@ enum Commands {
         /// Run external checker(s), comma-separated (e.g. `ruff`)
         #[arg(long, value_delimiter = ',')]
         with_external: Vec<String>,
+        /// Write a deterministic remediation prompt for an LLM/editor (no model call).
+        /// Optional path; default: `zerum-remediation-prompt.md`
+        #[arg(
+            long,
+            value_name = "FILE",
+            num_args = 0..=1,
+            default_missing_value = "zerum-remediation-prompt.md"
+        )]
+        remediation_prompt: Option<PathBuf>,
     },
     /// Explain a check by id (e.g. ZR001)
     Explain { id: String },
@@ -81,7 +90,14 @@ impl Cli {
                 format,
                 profile,
                 with_external,
-            } => run_check(&path, format, profile.as_deref(), with_external),
+                remediation_prompt,
+            } => run_check(
+                &path,
+                format,
+                profile.as_deref(),
+                with_external,
+                remediation_prompt.as_deref(),
+            ),
             Commands::Explain { id } => run_explain(&id),
             Commands::Init { strict } => run_init(strict),
             Commands::ListChecks => run_list_checks(),
@@ -102,6 +118,7 @@ fn run_check(
     format: ReportFormat,
     profile: Option<&str>,
     with_external: Vec<String>,
+    remediation_prompt: Option<&Path>,
 ) -> Result<ExitCode> {
     let mut config = Config::discover(path)?;
     config = apply_profile_override(config, profile);
@@ -127,6 +144,19 @@ fn run_check(
     }
 
     println!("{}", render(format.into(), &result.issues)?);
+
+    if let Some(prompt_path) = remediation_prompt {
+        let prompt = render_prompt(&result.issues, &path.display().to_string(), 8)?;
+        if let Some(parent) = prompt_path.parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent)
+                    .with_context(|| format!("create directory for {}", prompt_path.display()))?;
+            }
+        }
+        std::fs::write(prompt_path, &prompt)
+            .with_context(|| format!("write remediation prompt to {}", prompt_path.display()))?;
+        eprintln!("Wrote remediation prompt to {}", prompt_path.display());
+    }
 
     if !result.file_errors.is_empty() && result.issues.is_empty() {
         return Ok(ExitCode::from(EXIT_ERROR));
