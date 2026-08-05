@@ -2,9 +2,9 @@
 #
 # Copy to your tap as Formula/zerum.rb and fill sha256 from Release SHA256SUMS.
 class Zerum < Formula
-  desc "Deterministic Python code governance: ~75 checks, default/strict profiles, explain mode, optional Ruff orchestration"
+  desc "Deterministic Python code governance: ~75 checks, profiles, Ruff orchestration, remediation prompts"
   homepage "https://github.com/latentmeta/zerum"
-  version "0.4.2"
+  version "0.5.0"
   license "MIT"
 
   on_macos do

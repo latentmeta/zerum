@@ -13,11 +13,11 @@ No API token. One-time setup:
    - Workflow: `publish-pypi.yml`
    - Environment: `pypi`
 
-Tag `v0.4.2` (or dispatch **Publish PyPI wheels**) to upload wheels/sdist.
-See [docs/RELEASE_v0.4.2.md](../../docs/RELEASE_v0.4.2.md).
+Tag `v0.5.0` (or dispatch **Publish PyPI wheels**) to upload wheels/sdist.
+See [docs/RELEASE_v0.5.0.md](../../docs/RELEASE_v0.5.0.md).
 
 ```bash
-pip install "zerum==0.4.2"
+pip install "zerum==0.5.0"
 zerum --version
-zerum check .
+zerum check . --remediation-prompt
 ```

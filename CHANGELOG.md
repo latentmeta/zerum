@@ -7,10 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Profile inheritance: custom profiles with `extends = "strict"` now enable the full catalog
+- ZR008 docstring detection uses AST locations (no false positives on same-named methods)
+- ZR401 / ZR411 / ZR403 no longer double-report the same except handler
+- Near-tautological `PatternAny` rules (ZR102/104/109/110/202/203/208/505/509/510) rewritten as AST detectors
+- `SourceModel` views cached once per file
+- Dead `MarkdownReporter` removed; SARIF enabled by default and covered by snapshots
+- External Ruff findings use per-code ids (`EXT-RUFF-E501`)
+
 ### Planned
 
 - Opt-in LLM layer (`--with-llm`)
 - Autofix pipeline
+- Multi-file circular-import detection (ZR206 placeholder)
+
+## [0.5.0] - 2026-08-05
+
+Agent-friendly remediation briefs on top of the v0.4.x catalog and distribution stack.
+
+### Added
+
+- **`zerum check --remediation-prompt [FILE]`** — write a deterministic markdown remediation prompt for pasting into an LLM/editor agent (**no model call** in Zerum)
+  - Findings **grouped by check id (type)**
+  - Groups and occurrences ordered by **severity** (critical → info)
+  - Shared explanation/remediation per type; per-occurrence locations and source snippets
+  - Default output path: `zerum-remediation-prompt.md`
+- Project icon / artwork: [`docs/zerum-icon-01.png`](docs/zerum-icon-01.png) (web preview: [`docs/zerum-icon.jpg`](docs/zerum-icon.jpg))
+- README badges: CI, docs.rs, license, Rust/Python compatibility
+
+### Changed
+
+- README documents remediation prompts, CI artifact tips, and coverage via rustup `cargo`
+
+Release notes: [docs/RELEASE_v0.5.0.md](docs/RELEASE_v0.5.0.md)
 
 ## [0.4.2] - 2026-08-04
 
@@ -144,7 +175,8 @@ First public release — Phase 1 foundation. Deterministic Python governance in 
 - `--with-llm` is accepted but not implemented.
 - `integrations/`, `analyzers/external.rs`, `analyzers/llm.rs`, and `llm/` are stubs only.
 
-[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/latentmeta/zerum/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/latentmeta/zerum/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/latentmeta/zerum/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/latentmeta/zerum/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/latentmeta/zerum/compare/v0.2.0...v0.4.0

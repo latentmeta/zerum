@@ -11,14 +11,7 @@ pub struct FunctionMetrics {
     pub body_lines: usize,
     pub branch_count: usize,
     pub max_conditional_depth: usize,
-}
-
-#[derive(Debug, Clone)]
-pub struct ClassMetrics {
-    pub name: String,
-    pub line: usize,
-    pub column: usize,
-    pub method_count: usize,
+    pub has_docstring: bool,
 }
 
 fn offset(start: TextSize) -> u32 {
@@ -34,6 +27,22 @@ fn count_args(args: &Arguments) -> usize {
         n += 1;
     }
     n
+}
+
+/// True when the first meaningful statement is a string-literal expression (PEP 257 docstring).
+pub fn body_starts_with_docstring(body: &[Stmt]) -> bool {
+    match body.first() {
+        Some(Stmt::Expr(e)) => matches!(
+            e.value.as_ref(),
+            Expr::Constant(c) if matches!(c.value, rustpython_ast::Constant::Str(_))
+        ),
+        _ => false,
+    }
+}
+
+/// True when a module's first non-comment, non-blank statement is a string literal docstring.
+pub fn module_has_docstring(parsed: &ParsedFile) -> bool {
+    body_starts_with_docstring(module_body(&parsed.module))
 }
 
 pub fn collect_function_metrics(parsed: &ParsedFile) -> Vec<FunctionMetrics> {
@@ -53,28 +62,8 @@ pub fn collect_function_metrics(parsed: &ParsedFile) -> Vec<FunctionMetrics> {
             body_lines: stmt_line_span(parsed, body),
             branch_count: count_branches(body),
             max_conditional_depth: max_conditional_depth(body, 0),
+            has_docstring: body_starts_with_docstring(body),
         });
-    });
-    out
-}
-
-pub fn collect_class_metrics(parsed: &ParsedFile) -> Vec<ClassMetrics> {
-    let mut out = Vec::new();
-    walk_stmts(parsed, module_body(&parsed.module), &mut |stmt| {
-        if let Stmt::ClassDef(c) = stmt {
-            let (line, column) = line_col(&parsed.source, offset(c.start()));
-            let method_count = c
-                .body
-                .iter()
-                .filter(|s| matches!(s, Stmt::FunctionDef(_) | Stmt::AsyncFunctionDef(_)))
-                .count();
-            out.push(ClassMetrics {
-                name: c.name.to_string(),
-                line,
-                column,
-                method_count,
-            });
-        }
     });
     out
 }
@@ -149,6 +138,15 @@ pub fn is_broad_except_handler(handler: &ExceptHandler) -> bool {
             h.type_.as_deref(),
             Some(Expr::Name(n)) if n.id.as_str() == "Exception" || n.id.as_str() == "BaseException"
         )
+}
+
+/// `except BaseException:` only (ZR401). Bare and `Exception` are owned by ZR403 / ZR411.
+pub fn is_base_exception_handler(handler: &ExceptHandler) -> bool {
+    let ExceptHandler::ExceptHandler(h) = handler;
+    matches!(
+        h.type_.as_deref(),
+        Some(Expr::Name(n)) if n.id.as_str() == "BaseException"
+    )
 }
 
 pub fn is_mutable_expr(expr: &Expr) -> bool {
@@ -566,36 +564,6 @@ fn depth_try(
     }
     m = m.max(max_conditional_depth(orelse, d));
     m.max(max_conditional_depth(finalbody, d))
-}
-
-pub fn collect_import_modules(parsed: &ParsedFile) -> Vec<(String, usize, usize)> {
-    let mut out = Vec::new();
-    walk_stmts(
-        parsed,
-        module_body(&parsed.module),
-        &mut |stmt| match stmt {
-            Stmt::Import(i) => {
-                for alias in &i.names {
-                    let (line, column) = line_col(&parsed.source, offset(alias.start()));
-                    out.push((alias.name.to_string(), line, column));
-                }
-            }
-            Stmt::ImportFrom(i) => {
-                let module = i.module.as_ref().map(|m| m.to_string()).unwrap_or_default();
-                for alias in &i.names {
-                    let (line, column) = line_col(&parsed.source, offset(alias.start()));
-                    let full = if module.is_empty() {
-                        alias.name.to_string()
-                    } else {
-                        format!("{module}.{}", alias.name)
-                    };
-                    out.push((full, line, column));
-                }
-            }
-            _ => {}
-        },
-    );
-    out
 }
 
 #[cfg(test)]

@@ -64,7 +64,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - run: cargo build --release --manifest-path Cargo.toml --target ${{ matrix.target }}
+      - run: cargo build --release --manifest-path Cargo.toml --target ${{ matrix.target }} --features sarif
 
       - name: Package (Unix)
         if: matrix.archive == 'tar.gz'

@@ -65,10 +65,12 @@ impl ExternalChecker for RuffChecker {
 }
 
 fn map_ruff_severity(code: &str) -> Severity {
-    if code.starts_with('E') || code.starts_with('F') {
+    if code.starts_with('E') || code.starts_with('F') || code.starts_with('S') {
         Severity::High
-    } else {
+    } else if code.starts_with('B') || code.starts_with("ASYNC") {
         Severity::Medium
+    } else {
+        Severity::Low
     }
 }
 

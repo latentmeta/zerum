@@ -1,8 +1,8 @@
 use super::catalog_detectors::{self, CatalogDetector as PreciseDetector};
 use crate::config::Config;
 use crate::core::ast_util::{
-    has_mutable_defaults, is_broad_except_handler, is_print_call, walk_exprs_in_module,
-    walk_function_defs, walk_stmts_for_try, walk_stmts_in_module,
+    has_mutable_defaults, is_base_exception_handler, is_print_call, module_has_docstring,
+    walk_exprs_in_module, walk_function_defs, walk_stmts_for_try, walk_stmts_in_module,
 };
 use crate::core::{Category, Check, CheckContext, CheckMetadata, Issue, Severity};
 use crate::parser::line_col;
@@ -91,7 +91,7 @@ impl Check for CatalogCheck {
                     .unwrap_or(default);
                 ctx.source_model()
                     .functions()
-                    .into_iter()
+                    .iter()
                     .filter(|m| m.body_lines > max)
                     .map(|m| {
                         Issue::from_check(
@@ -115,7 +115,7 @@ impl Check for CatalogCheck {
                     .unwrap_or(default);
                 ctx.source_model()
                     .functions()
-                    .into_iter()
+                    .iter()
                     .filter(|m| m.arg_count > max)
                     .map(|m| {
                         Issue::from_check(
@@ -139,7 +139,7 @@ impl Check for CatalogCheck {
                     .unwrap_or(default);
                 ctx.source_model()
                     .functions()
-                    .into_iter()
+                    .iter()
                     .filter(|m| m.max_conditional_depth > max)
                     .map(|m| {
                         Issue::from_check(
@@ -163,7 +163,7 @@ impl Check for CatalogCheck {
                     .unwrap_or(default);
                 ctx.source_model()
                     .classes()
-                    .into_iter()
+                    .iter()
                     .filter(|m| m.method_count > max)
                     .map(|m| {
                         Issue::from_check(
@@ -314,7 +314,7 @@ impl Check for CatalogCheck {
             Detector::PatternAny(patterns) => run_pattern_check(self, ctx, patterns, false),
             Detector::PatternComment(patterns) => run_pattern_comment_check(self, ctx, patterns),
             Detector::MissingModuleDocstring => {
-                if has_module_docstring(ctx.source) {
+                if module_has_docstring(ctx.parsed) {
                     Vec::new()
                 } else {
                     vec![Issue::from_check(
@@ -329,38 +329,27 @@ impl Check for CatalogCheck {
             Detector::MissingFunctionDocstring => ctx
                 .source_model()
                 .functions()
-                .into_iter()
-                .filter_map(|m| {
-                    let needle = format!("def {}", m.name);
-                    let line_idx = ctx.source.lines().position(|l| l.contains(&needle))?;
-                    let next = ctx
-                        .source
-                        .lines()
-                        .nth(line_idx + 1)
-                        .unwrap_or_default()
-                        .trim();
-                    if next.starts_with("\"\"\"") || next.starts_with("'''") {
-                        None
-                    } else {
-                        Some(Issue::from_check(
-                            self,
-                            format!("function `{}` is missing a docstring", m.name),
-                            ctx.file_path(),
-                            m.line,
-                            m.column,
-                        ))
-                    }
+                .iter()
+                .filter(|m| !m.has_docstring)
+                .map(|m| {
+                    Issue::from_check(
+                        self,
+                        format!("function `{}` is missing a docstring", m.name),
+                        ctx.file_path(),
+                        m.line,
+                        m.column,
+                    )
                 })
                 .collect(),
             Detector::BroadExcept => {
                 let mut issues = Vec::new();
                 walk_stmts_for_try(ctx.parsed, &mut |handler| {
-                    if is_broad_except_handler(handler) {
+                    if is_base_exception_handler(handler) {
                         let ExceptHandler::ExceptHandler(h) = handler;
                         let (line, col) = line_col(&ctx.parsed.source, h.start().into());
                         issues.push(Issue::from_check(
                             self,
-                            "broad except handler catches Exception/BaseException",
+                            "except BaseException catches system-exiting exceptions",
                             ctx.file_path(),
                             line,
                             col,
@@ -487,17 +476,6 @@ fn run_pattern_comment_check(
     issues
 }
 
-fn has_module_docstring(source: &str) -> bool {
-    for line in source.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        return trimmed.starts_with("\"\"\"") || trimmed.starts_with("'''");
-    }
-    false
-}
-
 fn run_forbidden_arch_import(
     check: &CatalogCheck,
     ctx: &CheckContext,
@@ -543,10 +521,8 @@ fn path_contains_layer(path: &std::path::Path, layer: &str) -> bool {
 }
 
 fn is_magic_numeric_literal(text: &str) -> bool {
+    // Constant nodes never carry a leading `-` (unary minus is a separate AST node).
     let cleaned = text.trim();
-    if let Some(stripped) = cleaned.strip_prefix('-') {
-        return is_magic_numeric_literal(stripped);
-    }
     !matches!(
         cleaned,
         "0" | "1" | "2" | "10" | "0.0" | "1.0" | "2.0" | "10.0"
@@ -587,11 +563,19 @@ struct RuleDocs {
     examples: &'static str,
 }
 
-const GENERIC_DOCS: RuleDocs = RuleDocs {
-    explanation: "This finding highlights maintainability risk in deterministic analysis.",
+const HEURISTIC_DOCS: RuleDocs = RuleDocs {
+    explanation: "This finding highlights a stylistic or pattern-based signal.",
     remediation: "Refactor for clarity and consistency with project conventions.",
     false_positives: "Heuristic rule: validate in project context before enforcing strictly.",
     tradeoffs: "Stricter thresholds can improve consistency but may increase review churn.",
+    examples: "See `zerum explain <ID>` for examples.",
+};
+
+const PRECISE_DOCS: RuleDocs = RuleDocs {
+    explanation: "This finding was produced by an AST-precise deterministic check.",
+    remediation: "Refactor for clarity and consistency with project conventions.",
+    false_positives: "Rare on idiomatic code; confirm intent before suppressing.",
+    tradeoffs: "Enforcing this rule improves consistency with little false-positive risk.",
     examples: "See `zerum explain <ID>` for examples.",
 };
 
@@ -602,13 +586,17 @@ fn rule(
     severity: Severity,
     detector: Detector,
 ) -> Box<dyn Check> {
+    let fallback = match detector {
+        Detector::PatternAny(_) | Detector::PatternComment(_) => HEURISTIC_DOCS,
+        _ => PRECISE_DOCS,
+    };
     rule_with_docs(
         id,
         name,
         category,
         severity,
         detector,
-        docs_for(id).unwrap_or(GENERIC_DOCS),
+        docs_for(id).unwrap_or(fallback),
     )
 }
 
@@ -680,11 +668,12 @@ fn docs_for(id: &str) -> Option<RuleDocs> {
             examples: "Domain module importing `app.infrastructure.db`.",
         },
         "ZR401" => RuleDocs {
-            explanation: "Broad except handlers hide bugs and make failures hard to diagnose.",
-            remediation: "Catch specific exception types and re-raise or wrap with context.",
-            false_positives: "Top-level CLI entrypoints that must report any failure.",
+            explanation: "`except BaseException` catches KeyboardInterrupt and SystemExit.",
+            remediation: "Catch specific exception types; avoid BaseException in application code.",
+            false_positives:
+                "Top-level CLI entrypoints that must report any failure including exits.",
             tradeoffs: "Narrow exceptions improve signal but need maintenance when APIs change.",
-            examples: "`except Exception:` around business logic.",
+            examples: "`except BaseException:` around business logic.",
         },
         "ZR402" => RuleDocs {
             explanation: "Empty except blocks swallow errors silently.",
@@ -867,7 +856,7 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "inconsistent-class-naming",
             Category::Consistency,
             Severity::Low,
-            Detector::PatternAny(&["class ", "_"]),
+            Detector::Precise(PreciseDetector::InconsistentClassNaming),
         ),
         rule(
             "ZR103",
@@ -881,7 +870,7 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "inconsistent-import-style",
             Category::Consistency,
             Severity::Low,
-            Detector::PatternAny(&["import ", "from "]),
+            Detector::Precise(PreciseDetector::InconsistentImportStyle),
         ),
         rule(
             "ZR105",
@@ -916,14 +905,14 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "mixed-collection-style",
             Category::Consistency,
             Severity::Low,
-            Detector::PatternAny(&["[]", "{}"]),
+            Detector::Precise(PreciseDetector::MixedCollectionConstructors),
         ),
         rule(
             "ZR110",
             "mixed-return-style",
             Category::Consistency,
             Severity::Low,
-            Detector::PatternAny(&["return", "yield"]),
+            Detector::Precise(PreciseDetector::MixedReturnYield),
         ),
         rule(
             "ZR201",
@@ -937,14 +926,14 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "too-many-instance-variables",
             Category::Design,
             Severity::Medium,
-            Detector::PatternAny(&["self.", "self.", "self."]),
+            Detector::Precise(PreciseDetector::TooManyInstanceVariables { max: 8 }),
         ),
         rule(
             "ZR203",
             "too-many-public-methods",
             Category::Design,
             Severity::Medium,
-            Detector::PatternAny(&["def ", "class "]),
+            Detector::Precise(PreciseDetector::TooManyPublicMethods { max: 10 }),
         ),
         rule(
             "ZR204",
@@ -965,21 +954,21 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "circular-import",
             Category::Design,
             Severity::High,
-            Detector::PatternAny(&["import app.", "from app."]),
+            Detector::Precise(PreciseDetector::CircularImportUnavailable),
         ),
         rule(
             "ZR207",
             "forbidden-architecture-import",
-            Category::Design,
+            Category::Architecture,
             Severity::High,
             Detector::ForbiddenArchitectureImport,
         ),
         rule(
             "ZR208",
             "layer-violation",
-            Category::Design,
+            Category::Architecture,
             Severity::High,
-            Detector::PatternAny(&["infrastructure", "domain"]),
+            Detector::Precise(PreciseDetector::LayerPathHeuristic),
         ),
         rule(
             "ZR209",
@@ -1145,7 +1134,7 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
         rule(
             "ZR407",
             "dangerous-eval-exec",
-            Category::Warning,
+            Category::Security,
             Severity::High,
             Detector::DangerousEvalExec,
         ),
@@ -1238,7 +1227,7 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "boilerplate-parameter-docs",
             Category::Ai,
             Severity::Low,
-            Detector::PatternAny(&[":param ", ":return:"]),
+            Detector::Precise(PreciseDetector::BoilerplateParamDocs),
         ),
         rule(
             "ZR506",
@@ -1266,14 +1255,14 @@ pub fn build_catalog() -> Vec<Box<dyn Check>> {
             "excessive-abstraction",
             Category::Ai,
             Severity::Low,
-            Detector::PatternAny(&["Abstract", "Base", "Interface"]),
+            Detector::Precise(PreciseDetector::ExcessiveAbstractionNaming),
         ),
         rule(
             "ZR510",
             "generic-utility-explosion",
             Category::Ai,
             Severity::Low,
-            Detector::PatternAny(&["utils", "helpers", "common"]),
+            Detector::Precise(PreciseDetector::UtilityModuleExplosion),
         ),
     ]
 }

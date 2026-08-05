@@ -25,8 +25,9 @@ pub trait ExternalChecker: Send + Sync {
 impl ExternalFinding {
     pub fn into_issue(self) -> Issue {
         let title = format!("{}:{}", self.tool, self.code);
+        let id = format!("EXT-{}-{}", self.tool.to_uppercase(), self.code);
         Issue::builder(
-            format!("EXT-{}", self.tool.to_uppercase()),
+            id,
             title,
             self.message,
             self.file.into(),

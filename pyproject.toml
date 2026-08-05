@@ -4,8 +4,8 @@ build-backend = "maturin"
 
 [project]
 name = "zerum"
-version = "0.4.2"
-description = "Deterministic Python code governance: ~75 checks, default/strict profiles, explain mode, optional Ruff orchestration"
+version = "0.5.0"
+description = "Deterministic Python code governance: ~75 checks, profiles, Ruff orchestration, remediation prompts"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"

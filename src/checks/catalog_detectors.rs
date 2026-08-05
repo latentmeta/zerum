@@ -59,6 +59,25 @@ pub fn run_detector(
         }
         CatalogDetector::RepeatedLiteral => detect_repeated_literal(check, ctx),
         CatalogDetector::EmptyWrapperFunction => detect_empty_wrapper_function(check, ctx),
+        CatalogDetector::InconsistentClassNaming => detect_inconsistent_class_naming(check, ctx),
+        CatalogDetector::InconsistentImportStyle => detect_inconsistent_import_style(check, ctx),
+        CatalogDetector::MixedCollectionConstructors => {
+            detect_mixed_collection_constructors(check, ctx)
+        }
+        CatalogDetector::MixedReturnYield => detect_mixed_return_yield(check, ctx),
+        CatalogDetector::TooManyInstanceVariables { max } => {
+            detect_too_many_instance_variables(check, ctx, max)
+        }
+        CatalogDetector::TooManyPublicMethods { max } => {
+            detect_too_many_public_methods(check, ctx, max)
+        }
+        CatalogDetector::LayerPathHeuristic => detect_layer_path_heuristic(check, ctx),
+        CatalogDetector::ExcessiveAbstractionNaming => {
+            detect_excessive_abstraction_naming(check, ctx)
+        }
+        CatalogDetector::UtilityModuleExplosion => detect_utility_module_explosion(check, ctx),
+        CatalogDetector::BoilerplateParamDocs => detect_boilerplate_param_docs(check, ctx),
+        CatalogDetector::CircularImportUnavailable => Vec::new(),
     }
 }
 
@@ -71,7 +90,9 @@ pub enum CatalogDetector {
     RedundantBooleanComparison,
     DataclassWithoutBehavior,
     GlobalMutableAssignment,
-    ExceptHandlerOnlyPass { bare_only: bool },
+    ExceptHandlerOnlyPass {
+        bare_only: bool,
+    },
     MixedStringQuotes,
     ShortVariableName,
     TestAndShouldFunctionMix,
@@ -98,6 +119,22 @@ pub enum CatalogDetector {
     InconsistentFunctionNaming,
     RepeatedLiteral,
     EmptyWrapperFunction,
+    InconsistentClassNaming,
+    InconsistentImportStyle,
+    MixedCollectionConstructors,
+    MixedReturnYield,
+    TooManyInstanceVariables {
+        max: usize,
+    },
+    TooManyPublicMethods {
+        max: usize,
+    },
+    LayerPathHeuristic,
+    ExcessiveAbstractionNaming,
+    UtilityModuleExplosion,
+    BoilerplateParamDocs,
+    /// Multi-file circular import detection is not implemented; rule stays for catalog/explain.
+    CircularImportUnavailable,
 }
 
 fn detect_commented_out_code(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
@@ -376,7 +413,7 @@ fn detect_service_naming_explosion(check: &dyn Check, ctx: &CheckContext) -> Vec
     let count = ctx
         .source_model()
         .classes()
-        .into_iter()
+        .iter()
         .filter(|c| suffixes.iter().any(|s| c.name.ends_with(s)))
         .count();
     if count >= 2 {
@@ -802,9 +839,6 @@ fn detect_query_in_loop(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
                 found = true;
             }
         });
-        if !found {
-            return;
-        }
         if found {
             let (line, col) = line_col(&ctx.parsed.source, f.start().into());
             issues.push(Issue::from_check(
@@ -1321,4 +1355,372 @@ fn is_wrapper_body(body: &[Stmt]) -> bool {
         [Stmt::Expr(e)] => matches!(e.value.as_ref(), Expr::Call(_)),
         _ => false,
     }
+}
+
+fn is_pascal_case(name: &str) -> bool {
+    let mut chars = name.chars();
+    match chars.next() {
+        Some(c) if c.is_ascii_uppercase() => {
+            chars.all(|c| c.is_ascii_alphanumeric()) && name.chars().any(|c| c.is_ascii_lowercase())
+        }
+        _ => false,
+    }
+}
+
+fn detect_inconsistent_class_naming(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let classes = ctx.source_model().classes();
+    if classes.len() < 2 {
+        return Vec::new();
+    }
+    let pascal = classes.iter().filter(|c| is_pascal_case(&c.name)).count();
+    let non_pascal = classes.len() - pascal;
+    if pascal > 0 && non_pascal > 0 {
+        let c = &classes[0];
+        return vec![Issue::from_check(
+            check,
+            "module mixes PascalCase and non-PascalCase class names",
+            ctx.file_path(),
+            c.line,
+            c.column,
+        )];
+    }
+    Vec::new()
+}
+
+fn detect_inconsistent_import_style(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let imports = ctx.source_model().imports();
+    let has_import = imports.iter().any(|i| !i.is_from);
+    let has_from = imports.iter().any(|i| i.is_from);
+    if !(has_import && has_from) {
+        return Vec::new();
+    }
+    let mut plain_roots = std::collections::HashSet::new();
+    let mut from_roots = std::collections::HashSet::new();
+    for i in imports {
+        let root = i.module.split('.').next().unwrap_or(&i.module);
+        if i.is_from {
+            from_roots.insert(root.to_string());
+        } else {
+            plain_roots.insert(root.to_string());
+        }
+    }
+    let overlap: Vec<_> = plain_roots.intersection(&from_roots).cloned().collect();
+    if overlap.is_empty() {
+        return Vec::new();
+    }
+    let first = imports
+        .iter()
+        .find(|i| {
+            let root = i.module.split('.').next().unwrap_or(&i.module);
+            overlap.iter().any(|o| o == root)
+        })
+        .unwrap_or(&imports[0]);
+    vec![Issue::from_check(
+        check,
+        format!(
+            "module imports `{}` with both `import` and `from ... import` styles",
+            overlap.join(", ")
+        ),
+        ctx.file_path(),
+        first.line,
+        first.column,
+    )]
+}
+
+fn detect_mixed_collection_constructors(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let mut empty_list = false;
+    let mut empty_dict = false;
+    let mut list_call = false;
+    let mut dict_call = false;
+    walk_exprs_in_module(ctx.parsed, &mut |expr| match expr {
+        Expr::List(l) if l.elts.is_empty() => empty_list = true,
+        Expr::Dict(d) if d.keys.is_empty() && d.values.is_empty() => empty_dict = true,
+        Expr::Call(c) => {
+            if let Expr::Name(n) = c.func.as_ref() {
+                match n.id.as_str() {
+                    "list" if c.args.is_empty() => list_call = true,
+                    "dict" if c.args.is_empty() && c.keywords.is_empty() => dict_call = true,
+                    _ => {}
+                }
+            }
+        }
+        _ => {}
+    });
+    let mut issues = Vec::new();
+    if empty_list && list_call {
+        issues.push(Issue::from_check(
+            check,
+            "module mixes `[]` and `list()` empty-list constructors",
+            ctx.file_path(),
+            1,
+            1,
+        ));
+    }
+    if empty_dict && dict_call {
+        issues.push(Issue::from_check(
+            check,
+            "module mixes `{}` and `dict()` empty-dict constructors",
+            ctx.file_path(),
+            1,
+            1,
+        ));
+    }
+    issues
+}
+
+fn detect_mixed_return_yield(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let mut issues = Vec::new();
+    walk_stmts_in_module(ctx.parsed, &mut |stmt| {
+        let (name, body, start) = match stmt {
+            Stmt::FunctionDef(f) => (f.name.as_str(), f.body.as_slice(), f.start()),
+            Stmt::AsyncFunctionDef(f) => (f.name.as_str(), f.body.as_slice(), f.start()),
+            _ => return,
+        };
+        let mut has_return = false;
+        let mut has_yield = false;
+        scan_return_yield(body, &mut has_return, &mut has_yield);
+        if has_return && has_yield {
+            let (line, col) = line_col(&ctx.parsed.source, start.into());
+            issues.push(Issue::from_check(
+                check,
+                format!("function `{name}` mixes `return` and `yield`"),
+                ctx.file_path(),
+                line,
+                col,
+            ));
+        }
+    });
+    issues
+}
+
+fn scan_return_yield(stmts: &[Stmt], has_return: &mut bool, has_yield: &mut bool) {
+    for stmt in stmts {
+        match stmt {
+            Stmt::Return(_) => *has_return = true,
+            Stmt::Expr(e) => {
+                if matches!(e.value.as_ref(), Expr::Yield(_) | Expr::YieldFrom(_)) {
+                    *has_yield = true;
+                }
+            }
+            Stmt::If(i) => {
+                scan_return_yield(&i.body, has_return, has_yield);
+                scan_return_yield(&i.orelse, has_return, has_yield);
+            }
+            Stmt::For(f) => scan_return_yield(&f.body, has_return, has_yield),
+            Stmt::While(w) => scan_return_yield(&w.body, has_return, has_yield),
+            Stmt::Try(t) => {
+                scan_return_yield(&t.body, has_return, has_yield);
+                for h in &t.handlers {
+                    let ExceptHandler::ExceptHandler(h) = h;
+                    scan_return_yield(&h.body, has_return, has_yield);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+fn detect_too_many_instance_variables(
+    check: &dyn Check,
+    ctx: &CheckContext,
+    max: usize,
+) -> Vec<Issue> {
+    ctx.source_model()
+        .classes()
+        .iter()
+        .filter(|c| c.instance_var_count > max)
+        .map(|c| {
+            Issue::from_check(
+                check,
+                format!(
+                    "class `{}` assigns {} instance variables in `__init__` (max {})",
+                    c.name, c.instance_var_count, max
+                ),
+                ctx.file_path(),
+                c.line,
+                c.column,
+            )
+        })
+        .collect()
+}
+
+fn detect_too_many_public_methods(check: &dyn Check, ctx: &CheckContext, max: usize) -> Vec<Issue> {
+    let max = ctx
+        .config
+        .check_config(check.id())
+        .max_methods
+        .unwrap_or(max);
+    ctx.source_model()
+        .classes()
+        .iter()
+        .filter(|c| c.public_method_count > max)
+        .map(|c| {
+            Issue::from_check(
+                check,
+                format!(
+                    "class `{}` defines {} public methods (max {})",
+                    c.name, c.public_method_count, max
+                ),
+                ctx.file_path(),
+                c.line,
+                c.column,
+            )
+        })
+        .collect()
+}
+
+fn detect_layer_path_heuristic(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let path_str = ctx.path.to_string_lossy().to_ascii_lowercase();
+    let in_domain = path_str.contains("/domain/") || path_str.contains("\\domain\\");
+    let in_infra = path_str.contains("/infrastructure/") || path_str.contains("\\infrastructure\\");
+    if !in_domain && !in_infra {
+        return Vec::new();
+    }
+    let mut issues = Vec::new();
+    for import in ctx.source_model().imports() {
+        let mod_lower = import.module.to_ascii_lowercase();
+        if in_domain && mod_lower.contains("infrastructure") {
+            issues.push(Issue::from_check(
+                check,
+                format!(
+                    "domain module imports infrastructure module `{}`",
+                    import.module
+                ),
+                ctx.file_path(),
+                import.line,
+                import.column,
+            ));
+        }
+        if in_infra && mod_lower.contains("domain") {
+            issues.push(Issue::from_check(
+                check,
+                format!(
+                    "infrastructure module imports domain module `{}`",
+                    import.module
+                ),
+                ctx.file_path(),
+                import.line,
+                import.column,
+            ));
+        }
+    }
+    issues
+}
+
+fn detect_excessive_abstraction_naming(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let flagged: Vec<_> = ctx
+        .source_model()
+        .classes()
+        .iter()
+        .filter(|c| {
+            let name = c.name.as_str();
+            (name.starts_with("Abstract") && name.len() > "Abstract".len())
+                || (name.starts_with("Base")
+                    && name.len() > "Base".len()
+                    && name
+                        .chars()
+                        .nth(4)
+                        .is_some_and(|ch| ch.is_ascii_uppercase()))
+                || name.ends_with("Interface")
+        })
+        .collect();
+    // Require at least 2 such classes to reduce noise on BaseModel alone.
+    if flagged.len() < 2 {
+        return Vec::new();
+    }
+    flagged
+        .into_iter()
+        .map(|c| {
+            Issue::from_check(
+                check,
+                format!(
+                    "class `{}` uses Abstract/Base/Interface naming; consider concrete names",
+                    c.name
+                ),
+                ctx.file_path(),
+                c.line,
+                c.column,
+            )
+        })
+        .collect()
+}
+
+fn detect_utility_module_explosion(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let markers = ["util", "utils", "helper", "helpers", "common"];
+    let fn_hits = ctx
+        .source_model()
+        .functions()
+        .iter()
+        .filter(|f| {
+            let lower = f.name.to_ascii_lowercase();
+            markers.iter().any(|m| lower.contains(m))
+        })
+        .count();
+    let class_hits = ctx
+        .source_model()
+        .classes()
+        .iter()
+        .filter(|c| {
+            let lower = c.name.to_ascii_lowercase();
+            markers.iter().any(|m| lower.contains(m))
+        })
+        .count();
+    let import_hits = ctx
+        .source_model()
+        .imports()
+        .iter()
+        .filter(|i| {
+            let lower = i.module.to_ascii_lowercase();
+            markers
+                .iter()
+                .any(|m| lower.split('.').any(|seg| seg == *m))
+        })
+        .count();
+    let total = fn_hits + class_hits + import_hits;
+    if total < 3 {
+        return Vec::new();
+    }
+    vec![Issue::from_check(
+        check,
+        format!("module has {total} util/helper/common names or imports; consider consolidating"),
+        ctx.file_path(),
+        1,
+        1,
+    )]
+}
+
+fn detect_boilerplate_param_docs(check: &dyn Check, ctx: &CheckContext) -> Vec<Issue> {
+    let mut issues = Vec::new();
+    let mut push_if_trivial = |line: usize, col: usize, name: &str, desc: &str| {
+        let desc = desc.trim().trim_end_matches('.').to_ascii_lowercase();
+        let name_l = name.to_ascii_lowercase();
+        let trivial = desc.is_empty()
+            || desc == name_l
+            || desc == format!("the {name_l}")
+            || desc == format!("a {name_l}")
+            || desc == format!("an {name_l}");
+        if trivial {
+            issues.push(Issue::from_check(
+                check,
+                format!("boilerplate :param docs for `{name}`"),
+                ctx.file_path(),
+                line,
+                col,
+            ));
+        }
+    };
+
+    for (idx, line) in ctx.source.lines().enumerate() {
+        let trimmed = line.trim();
+        let candidate = trimmed
+            .trim_start_matches('#')
+            .trim()
+            .trim_start_matches(['"', '\'']);
+        if let Some(rest) = candidate.strip_prefix(":param ") {
+            if let Some((name, desc)) = rest.split_once(':') {
+                push_if_trivial(idx + 1, 1, name.trim(), desc);
+            }
+        }
+    }
+    issues
 }

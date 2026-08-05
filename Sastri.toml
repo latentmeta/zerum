@@ -3,11 +3,11 @@
 
 [project]
 name = "zerum"
-description = "Deterministic Python code governance: ~75 checks, default/strict profiles, explain mode, optional Ruff orchestration"
+description = "Deterministic Python code governance: ~75 checks, profiles, Ruff orchestration, remediation prompts"
 github_owner = "latentmeta"
 github_repo = "zerum"
 binary_name = "zerum"
-version = "0.4.2"
+version = "0.5.0"
 cargo_manifest = "Cargo.toml"
 license = "MIT"
 homepage = "https://github.com/latentmeta/zerum"

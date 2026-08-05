@@ -71,7 +71,7 @@ zerum check . --with-external ruff
 zerum list-checkers
 ```
 
-External findings use ids like `EXT-RUFF` and `confidence: tool_reported`.
+External findings use ids like `EXT-RUFF-E501` (tool + rule code) and `confidence: tool_reported`.
 
 ## Schema validation
 
